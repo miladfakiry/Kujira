@@ -13,5 +13,7 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- script: dotnet build --configuration $(buildConfiguration)
+- script: |
+    cd C:\Projekte\kujira\Kujira
+    dotnet build --configuration $(buildConfiguration)
   displayName: 'dotnet build $(buildConfiguration)'
