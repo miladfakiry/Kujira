@@ -6,25 +6,40 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar>
+
+    <MudAppBar Color="Color.Primary" Fixed="true">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        My Application
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Custom.Brands.Google" Color="Color.Inherit" />
     </MudAppBar>
+
     <MudDrawer @bind-Open="@_drawerOpen">
-       
         <MudNavMenu>
-            <MudPaper Class="d-flex justify-center flex-grow-1 gap-4" Elevation="0">
+            <MudPaper Class="d-flex justify-center flex-grow-1 gap-0" Elevation="0">
                 <MudImage Src="Images/KujiraTransparent.png" Width="55" Height="55" Alt="Kujira logo" />
             </MudPaper>
             <MudDivider Class="my-2"/>
             <MudNavLink Href="/dashboard" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+            <MudNavGroup Title="Applikationen" Icon="@Icons.Material.Filled.SettingsApplications" Expanded="true">
+                <MudNavLink Href="/users" Icon="@Icons.Material.Filled.Bathtub" IconColor="Color.Success">Badewanne</MudNavLink>
+                <MudNavLink Href="/security" Icon="@Icons.Material.Filled.Balance" IconColor="Color.Info">Balance</MudNavLink>
+            </MudNavGroup>
             <MudNavLink Href="/servers" Icon="@Icons.Material.Filled.Storage">Servers</MudNavLink>
-            <MudNavLink Href="/billing" Icon="@Icons.Material.Filled.Receipt" Disabled="true">Billing</MudNavLink>
+            <MudNavLink Href="/billing" Icon="@Icons.Material.Filled.Receipt" Disabled="true">Rechnungen</MudNavLink>
             <MudNavGroup Title="Settings" Icon="@Icons.Material.Filled.Settings" Expanded="true">
                 <MudNavLink Href="/users" Icon="@Icons.Material.Filled.People" IconColor="Color.Success">Users</MudNavLink>
                 <MudNavLink Href="/security" Icon="@Icons.Material.Filled.Security" IconColor="Color.Info">Security</MudNavLink>
             </MudNavGroup>
+
         </MudNavMenu>
+        
+        <MudContainer Class="d-flex flex-column-reverse flex-grow-1">
+            <MudText Typo="Typo.caption">Version 0.1</MudText>
+        </MudContainer>
+
+      
+
+        
     </MudDrawer>
     <MudMainContent>
         <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge">
