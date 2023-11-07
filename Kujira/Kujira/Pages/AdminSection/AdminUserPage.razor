@@ -1,0 +1,218 @@
+﻿@page "/adminUser"
+@using MudBlazor
+@using Kujira.Services
+@using Kujira.Api.Requests
+@using Kujira.Api
+@inject IDialogService DialogService
+@inject UserApiService UserApi
+@inject IKujiraBackendApi KujiraBackendApi
+
+
+
+<PageTitle>User Verwaltung</PageTitle>
+
+<h1>User verwalten</h1>
+
+<MudDataGrid Items="@_users"  Hover="@_hover" Filterable="false" SortMode="@SortMode.Multiple" Groupable="true" ReadOnly="@_readOnly"
+             StartedEditingItem="@startedEditingCallback"
+             CanceledEditingItem="@canceledEditingCallback"
+             CommittedItemChanges="@committedChangesCallback"
+             Bordered="false" Dense="false" EditTrigger="@(_editTriggerRowClick ? DataGridEditTrigger.OnRowClick : DataGridEditTrigger.Manual)">
+    <Columns>
+        <PropertyColumn Property="x => x.Id" Title="Id" Filterable="false"/>
+        <PropertyColumn Property="x => x.FirstName" Title="Vorname"/>
+        <PropertyColumn Property="x => x.LastName" Title="Nachname">
+
+            <FilterTemplate>
+                <MudIconButton OnClick="@OpenFilter" Icon="@_icon" Size="@Size.Small"/>
+                <MudOverlay Visible="@_filterOpen" OnClick="@(() => _filterOpen = false)"/>
+                <MudPopover Open="@_filterOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter"
+                            Style="width:150px">
+                    <MudStack Spacing="0">
+                        @* <MudCheckBox T="bool" Label="Select All" Size="@Size.Small" Checked="@_selectAll" CheckedChanged="@SelectAll" />
+                        <MudStack Spacing="0" Style="overflow-y:auto;max-height:250px">
+                        @foreach (var item in context.Items)
+                        {
+                        <MudCheckBox T="bool" Label="@($"{item.Sign}")" Size="@Size.Small" Checked="@(_selectedItems.Contains(item))"
+                        CheckedChanged="@((value) => SelectedChanged(value, item))" />
+                        } *@
+                        @*  </MudStack> *@
+                        <MudStack Row="true">
+                            <MudButton OnClick="@(() => ClearFilterAsync(context))">Clear</MudButton>
+                            <MudButton Color="@Color.Primary" OnClick="@(() => ApplyFilterAsync(context))">Filter</MudButton>
+                        </MudStack>
+                    </MudStack>
+                </MudPopover>
+            </FilterTemplate>
+
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.DateOfBirth" Title="Geburtsdatum" IsEditable="true" />
+        <PropertyColumn Property="x => x.EMail" Title="E-Mail-Adresse" />
+        <PropertyColumn Property="x => x.PhoneNumber" Title="Telefonnummer" Required="false" />
+        <PropertyColumn Property="x => x.CreateDate" Title="Erstellt am:" />
+        <PropertyColumn Property="x => x.IsInactive" Title="Inaktiv" IsEditable="true" Filterable="true" />
+      
+        <TemplateColumn Hidden="@_isCellEditMode">
+            <CellTemplate>
+                <MudIconButton Color="Color.Primary" Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@context.Actions.StartEditingItemAsync" />
+                <MudIconButton Color="Color.Error" Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@( () => DeleteUser(context.Item) )" />
+            </CellTemplate>
+        </TemplateColumn>
+
+    </Columns>
+
+    <PagerContent>
+        <MudDataGridPager T="UserRequest" />
+    </PagerContent>
+
+</MudDataGrid>
+
+@code {
+    private IEnumerable<UserRequest> _users = new List<UserRequest>();
+    private UserRequest _selectedUserDto;
+    private Guid _id;
+    private string _firstName;
+    private string _lastName;
+    private DateTime _dateOfBirth;
+    private string _eMail;
+    private string _phoneNumber;
+    private DateTime _createDate;
+    private bool _isInactive;
+    private bool _isIdReadOnly = true;
+    private bool isEditing;
+
+    private bool _readOnly;
+    private bool _isCellEditMode;
+    private bool _editTriggerRowClick;
+    private bool _hover;
+
+    private EventCallback<UserRequest> startedEditingCallback;
+    private EventCallback<UserRequest> canceledEditingCallback;
+    private EventCallback<UserRequest> committedChangesCallback;
+
+
+    HashSet<UserRequest> _selectedItems = new();
+    HashSet<UserRequest> _filterItems = new();
+    FilterDefinition<UserRequest> _filterDefinition;
+    bool _selectAll = true;
+    string _icon = Icons.Material.Outlined.FilterAlt;
+    bool _filterOpen;
+
+    private async Task LoadUsersAsync()
+    {
+        _users = await KujiraBackendApi.GetUsers();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        startedEditingCallback = EventCallback.Factory.Create<UserRequest>(this, StartedEditingItem);
+        canceledEditingCallback = EventCallback.Factory.Create<UserRequest>(this, CanceledEditingItem);
+        committedChangesCallback = EventCallback.Factory.Create<UserRequest>(this, CommittedItemChanges);
+
+
+        try
+        {
+            await LoadUsersAsync();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Es ist ein Problem beim LoadUserAsync aufgetreten, hier ist die Exception:{e}");
+            throw;
+        }
+    }
+
+    void OpenFilter()
+    {
+        _filterOpen = true;
+    }
+
+    private void SelectedChanged(bool value, UserRequest item)
+    {
+        if (value)
+            _selectedItems.Add(item);
+        else
+            _selectedItems.Remove(item);
+
+        if (_selectedItems.Count == _users.Count())
+            _selectAll = true;
+        else
+            _selectAll = false;
+    }
+
+    private async Task ClearFilterAsync(FilterContext<UserRequest> context)
+    {
+        _selectedItems = _users.ToHashSet();
+        _filterItems = _users.ToHashSet();
+        _icon = Icons.Material.Outlined.FilterAlt;
+        await context.Actions.ClearFilterAsync(_filterDefinition);
+        _filterOpen = false;
+    }
+
+    private async Task ApplyFilterAsync(FilterContext<UserRequest> context)
+    {
+        _filterItems = _selectedItems.ToHashSet();
+        _icon = _filterItems.Count == _users.Count() ? Icons.Material.Outlined.FilterAlt : Icons.Material.Filled.FilterAlt;
+        await context.Actions.ApplyFilterAsync(_filterDefinition);
+        _filterOpen = false;
+    }
+
+    private void SelectAll(bool value)
+    {
+        _selectAll = value;
+
+        if (value)
+        {
+            _selectedItems = _users.ToHashSet();
+        }
+        else
+        {
+            _selectedItems.Clear();
+        }
+    }
+
+
+    private async Task StartedEditingItem(UserRequest item)
+    {
+        Console.WriteLine("StartEditing wurde ausgeführt");
+    }
+
+    private async Task CanceledEditingItem(UserRequest item)
+    {
+     
+    }
+
+    private async Task CommittedItemChanges(UserRequest item)
+    {
+        try
+        {
+            await KujiraBackendApi.UpdateUser(item.Id, item);
+            Console.WriteLine("Erfolgreich geändert!");
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Fehler beim Aktualisieren des Benutzers: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteUser(UserRequest item)
+    {
+        var confirmation = await DialogService.ShowMessageBox("Bestätigen", "Möchten Sie diesen Benutzer wirklich löschen?", yesText: "Löschen", cancelText: "Abbrechen");
+        if ((bool) !confirmation)
+            return;
+
+        try
+        {
+            await KujiraBackendApi.DeleteUser(item.Id);
+            Console.WriteLine("Benutzer erfolgreich gelöscht!");
+            await LoadUsersAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Fehler beim Löschen des Benutzers: {ex.Message}");
+        }
+    }
+
+
+}

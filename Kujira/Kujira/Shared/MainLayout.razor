@@ -1,19 +1,24 @@
 ﻿@using MudBlazor
 @inherits LayoutComponentBase
 
+
+
 <MudThemeProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 <MudLayout>
-
-    <MudAppBar Color="Color.Primary" Fixed="true">
+    
+    @*Header AppBar*@
+    <MudAppBar Color="Color.Transparent" Fixed="true">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudSpacer />
-        <MudIconButton Icon="@Icons.Custom.Brands.Google" Color="Color.Inherit" />
+        
+        <MudIconButton Icon="@Icons.Custom.Brands.Google" Color="Color.Inherit"/>
     </MudAppBar>
-
-    <MudDrawer @bind-Open="@_drawerOpen">
+    
+    @*Left NavBar*@
+    <MudDrawer Color="Color.Transparent" @bind-Open="@_drawerOpen">
         <MudNavMenu>
             <MudPaper Class="d-flex justify-center flex-grow-1 gap-0" Elevation="0">
                 <MudImage Src="Images/KujiraTransparent.png" Width="55" Height="55" Alt="Kujira logo" />
@@ -21,8 +26,8 @@
             <MudDivider Class="my-2"/>
             <MudNavLink Href="/dashboard" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
             <MudNavGroup Title="Applikationen" Icon="@Icons.Material.Filled.SettingsApplications" Expanded="true">
-                <MudNavLink Href="/users" Icon="@Icons.Material.Filled.Bathtub" IconColor="Color.Success">Badewanne</MudNavLink>
-                <MudNavLink Href="/security" Icon="@Icons.Material.Filled.Balance" IconColor="Color.Info">Balance</MudNavLink>
+                <MudNavLink Href="/searchPage" Icon="@Icons.Material.Filled.Search" IconColor="Color.Success">Platzsuche</MudNavLink>
+                <MudNavLink Href="/offerPlaces" Icon="@Icons.Material.Filled.Place" IconColor="Color.Info">Plätze anbieten</MudNavLink>
             </MudNavGroup>
             <MudNavLink Href="/servers" Icon="@Icons.Material.Filled.Storage">Servers</MudNavLink>
             <MudNavLink Href="/billing" Icon="@Icons.Material.Filled.Receipt" Disabled="true">Rechnungen</MudNavLink>
@@ -30,16 +35,25 @@
                 <MudNavLink Href="/users" Icon="@Icons.Material.Filled.People" IconColor="Color.Success">Users</MudNavLink>
                 <MudNavLink Href="/security" Icon="@Icons.Material.Filled.Security" IconColor="Color.Info">Security</MudNavLink>
             </MudNavGroup>
-
+            
+            <MudNavGroup Title="Adminbereich" Icon="@Icons.Material.Filled.AdminPanelSettings" Expanded="true">
+                <MudNavLink Href="/adminUser" Icon="@Icons.Material.Filled.People" IconColor="Color.Success">Users</MudNavLink>
+                <MudNavLink Href="/adminPlaces" Icon="@Icons.Material.Filled.Place" IconColor="Color.Success">Places</MudNavLink>
+            </MudNavGroup>
         </MudNavMenu>
         
+        @*Footer AppBar*@
+        <MudAppBar Bottom="true" Fixed="true" Color="Color.Tertiary" Elevation="1">
+            <MudSpacer />
+            <MudIconButton Icon="@Icons.Material.Filled.FavoriteBorder" Color="Color.Inherit" Edge="Edge.End" />
+            <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
+        </MudAppBar>
+        
+        @*Version of Application*@
         <MudContainer Class="d-flex flex-column-reverse flex-grow-1">
             <MudText Typo="Typo.caption">Version 0.1</MudText>
         </MudContainer>
 
-      
-
-        
     </MudDrawer>
     <MudMainContent>
         <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge">
