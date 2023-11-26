@@ -1,7 +1,14 @@
-﻿namespace Kujira.Backend.Company.Domain;
+﻿using Kujira.Backend.Shared.Persistence;
 
-public class CompanyType
+namespace Kujira.Backend.Company.Domain;
+
+public class CompanyType : DbItem
 {
+    public CompanyType(Guid id, string type) :base(id)
+    {
+        Id = id;
+        Type = type;
+    }
     public Guid Id { get; set; }
     public string Type { get; set; }
 }

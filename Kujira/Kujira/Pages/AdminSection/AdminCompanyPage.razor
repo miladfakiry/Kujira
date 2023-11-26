@@ -1,0 +1,267 @@
+﻿@page "/adminCompany"
+@using MudBlazor
+@using Kujira.Api
+@using Kujira.Gui.Api.Requests
+@inject IDialogService DialogService
+@inject IKujiraBackendApi KujiraBackendApi
+
+
+
+<div class="d-flex justify-space-between align-items-center my-2">
+    <h1>Firmen verwalten</h1>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenCreateCompanyDialog">Firma erfassen</MudButton>
+</div>
+
+<MudDataGrid Items="@_companies"
+             Hover="@_hover"
+             Filterable="false"
+             SortMode="@SortMode.Multiple"
+             Groupable="true"
+             ReadOnly="@_readOnly"
+             StartedEditingItem="@startedEditingCallback"
+             CanceledEditingItem="@canceledEditingCallback"
+             CommittedItemChanges="@committedChangesCallback"
+             Bordered="false"
+             Dense="false">
+    <Columns>
+        <PropertyColumn Property="x => x.Id" Title="Id" Filterable="false"/>
+        <PropertyColumn Property="x => x.Name" Title="Firmenname"/>
+        <PropertyColumn Property="x => x.AddStreet" Title="Strasse"/>
+        <PropertyColumn Property="x => x.AddStreetNumber" Title="Nummer"/>
+        <PropertyColumn Property="x => x.ZipCode" Title="PLZ"/>
+        <PropertyColumn Property="x => x.ZipCity" Title="Stadt"/>
+        <PropertyColumn Property="x => x.CantonName" Title="Kanton">
+            <FilterTemplate>
+                <MudIconButton OnClick="@OpenFilter" Icon="@_icon" Size="@Size.Small"/>
+                <MudOverlay Visible="@_filterOpen" OnClick="@(() => _filterOpen = false)"/>
+                <MudPopover Open="@_filterOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter"
+                            Style="width:150px">
+                    <MudStack Spacing="0">
+                        <MudStack Row="true">
+                            <MudButton OnClick="@(() => ClearFilterAsync(context))">Clear</MudButton>
+                            <MudButton Color="@Color.Primary" OnClick="@(() => ApplyFilterAsync(context))">Filter</MudButton>
+                        </MudStack>
+                    </MudStack>
+                </MudPopover>
+            </FilterTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.CountryName" Title="Land"/>
+        <PropertyColumn Property="x => x.CompanyTypeName" Title="Firmen Typ"/>
+        <PropertyColumn Property="x => x.PhoneNumber" Title="Telefonnummer"/>
+        <PropertyColumn Property="x => x.EMailAddress" Title="E-Mail"/>
+        <PropertyColumn Property="x => x.WebsiteAddress" Title="Website"/>
+
+        <TemplateColumn Hidden="@_isCellEditMode">
+            <CellTemplate>
+                <MudIconButton Color="Color.Primary" Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => StartedEditingItem(context.Item))"/>
+                <MudIconButton Color="Color.Error" Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => DeleteCompany(context.Item))"/>
+            </CellTemplate>
+        </TemplateColumn>
+
+    </Columns>
+
+    <PagerContent>
+        <MudDataGridPager T="CompanyRequest" />
+    </PagerContent>
+
+</MudDataGrid>
+
+@code {
+    private IEnumerable<CompanyRequest> _companies = new List<CompanyRequest>();
+    private CompanyRequest _selectedCompanyDto;
+    private Guid _id;
+    private string _name;
+    private string _eMail;
+    private string _phoneNumber;
+    private string _websiteAddress;
+    private bool _isIdReadOnly = true;
+    private bool isEditing;
+
+    private bool _readOnly;
+    private bool _isCellEditMode;
+    private static bool _editTriggerRowClick;
+    private bool _hover;
+
+    private EventCallback<CompanyRequest> startedEditingCallback;
+    private EventCallback<CompanyRequest> canceledEditingCallback;
+    private EventCallback<CompanyRequest> committedChangesCallback;
+
+
+    HashSet<CompanyRequest> _selectedItems = new();
+    HashSet<CompanyRequest> _filterItems = new();
+    FilterDefinition<CompanyRequest> _filterDefinition;
+    bool _selectAll = true;
+    string _icon = Icons.Material.Outlined.FilterAlt;
+    bool _filterOpen;
+
+    private async Task LoadCompaniesAsync()
+    {
+        _companies = await KujiraBackendApi.GetCompanies();
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        startedEditingCallback = EventCallback.Factory.Create<CompanyRequest>(this, StartedEditingItem);
+        canceledEditingCallback = EventCallback.Factory.Create<CompanyRequest>(this, CanceledEditingItem);
+        committedChangesCallback = EventCallback.Factory.Create<CompanyRequest>(this, CommittedItemChanges);
+
+
+        try
+        {
+            await LoadCompaniesAsync();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Es ist ein Problem beim LoadCompaniesAsync aufgetreten, hier ist die Exception:{e}");
+            throw;
+        }
+    }
+
+    private async Task OpenCreateCompanyDialog()
+    {
+        var options = new DialogOptions
+            {
+                MaxWidth = MaxWidth.Medium,
+                FullWidth = true
+            };
+        var parameters = new DialogParameters();
+        parameters.Add("OnCompanyCreated", EventCallback.Factory.Create<bool>(this, async result =>
+        {
+            if (result)
+            {
+                await LoadCompaniesAsync();
+            }
+        }));
+
+        var dialog = DialogService.Show<CompanyForm>("Firma erfassen", parameters, options);
+        await dialog.Result;
+    }
+
+
+    void OpenFilter()
+    {
+        _filterOpen = true;
+    }
+
+    private void SelectedChanged(bool value, CompanyRequest item)
+    {
+        if (value)
+            _selectedItems.Add(item);
+        else
+            _selectedItems.Remove(item);
+
+        if (_selectedItems.Count == _companies.Count())
+            _selectAll = true;
+        else
+            _selectAll = false;
+    }
+
+    private async Task ClearFilterAsync(FilterContext<CompanyRequest> context)
+    {
+        _selectedItems = _companies.ToHashSet();
+        _filterItems = _companies.ToHashSet();
+        _icon = Icons.Material.Outlined.FilterAlt;
+        await context.Actions.ClearFilterAsync(_filterDefinition);
+        _filterOpen = false;
+    }
+
+    private async Task ApplyFilterAsync(FilterContext<CompanyRequest> context)
+    {
+        _filterItems = _selectedItems.ToHashSet();
+        _icon = _filterItems.Count == _companies.Count() ? Icons.Material.Outlined.FilterAlt : Icons.Material.Filled.FilterAlt;
+        await context.Actions.ApplyFilterAsync(_filterDefinition);
+        _filterOpen = false;
+    }
+
+    private void SelectAll(bool value)
+    {
+        _selectAll = value;
+
+        if (value)
+        {
+            _selectedItems = _companies.ToHashSet();
+        }
+        else
+        {
+            _selectedItems.Clear();
+        }
+    }
+
+    private async Task StartedEditingItem(CompanyRequest item)
+    {
+        try
+        {
+            Console.WriteLine("Bearbeitung von Firma mit Id " + item.Id + " startet.");
+
+            // Lade FirmenDaten
+            var companyToEdit = await KujiraBackendApi.GetCompany(item.Id);
+            if (companyToEdit == null)
+            {
+                Console.WriteLine("Firma nicht gefunden.");
+                return;
+            }
+
+            var options = new DialogOptions
+                {
+                    MaxWidth = MaxWidth.ExtraSmall,
+                    FullWidth = true,
+
+                };
+            var parameters = new DialogParameters
+                {
+                    ["company"] = companyToEdit
+                };
+            var dialog = DialogService.Show<EditCompanyDialog>("Firma bearbeiten", parameters, options);
+            var result = await dialog.Result;
+
+            if (!result.Cancelled)
+            {
+                Console.WriteLine("Firma erfolgreich bearbeitet.");
+                await LoadCompaniesAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Fehler beim Bearbeiten der Firma: " + ex.Message);
+        }
+    }
+
+    private async Task CanceledEditingItem(CompanyRequest item)
+    {
+    }
+
+    private async Task CommittedItemChanges(CompanyRequest item)
+    {
+        try
+        {
+            await KujiraBackendApi.UpdateCompany(item.Id, item);
+            Console.WriteLine("Erfolgreich geändert!");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Fehler beim Aktualisieren der Firma: {ex.Message}");
+        }
+    }
+
+
+    private async Task DeleteCompany(CompanyRequest item)
+    {
+        var confirmation = await DialogService.ShowMessageBox("Bestätigen", "Möchten Sie diese Firma wirklich löschen?", "Löschen", cancelText: "Abbrechen");
+        if ((bool)!confirmation)
+            return;
+
+        try
+        {
+            await KujiraBackendApi.DeleteCompany(item.Id);
+            Console.WriteLine("Firma erfolgreich gelöscht!");
+            await LoadCompaniesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Fehler beim Löschen der Firma: {ex.Message}");
+        }
+    }
+
+
+}

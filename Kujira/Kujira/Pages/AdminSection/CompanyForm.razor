@@ -1,0 +1,140 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using Kujira.Api
+@using Kujira.Api.Requests
+@using Kujira.Gui.Api.Requests
+@using MudBlazor
+@inject IKujiraBackendApi KujiraBackendApi
+@inject ISnackbar Snackbar
+
+
+<EditForm Model="@companyFormModel" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator />
+    <MudGrid>
+        <MudItem xs="12">
+            <MudCard>
+                <MudCardContent>
+                    <MudSelect T="CompanyTypeRequest" Label="Firmentyp" @bind-Value="@selectedCompanyType" OnOpen="@LoadCompanyTypes">
+                        @if (companyTypes != null)
+                        {
+
+
+                            @foreach (var type in companyTypes)
+                            {
+                                <MudSelectItem Value="@type"/>
+                            }
+                        }
+                    </MudSelect>
+                    <MudTextField Label="Firmenname" @bind-Value="@companyFormModel.Name" For="@(() => companyFormModel.Name)"/>
+                    <MudTextField Label="Strasse" @bind-Value="@companyFormModel.AddStreet" For="@(() => companyFormModel.AddStreet)"/>
+                    <MudTextField Label="Nummer" @bind-Value="@companyFormModel.AddStreetNumber" For="@(() => companyFormModel.AddStreetNumber)"/>
+                    <MudSelect T="ZipRequest" Label="PLZ" @bind-Value="@selectedZip" OnOpen="GetByCodeWithCantonAndCountry">
+                        @if (zips != null)
+                        {
+                            @foreach (var zip in zips)
+                            {
+                                <MudSelectItem Value="@zip"/>
+                            }
+                        }
+                    </MudSelect>
+                    <MudTextField Label="Stadt" @bind-Value="@companyFormModel.ZipCity" For="@(() => companyFormModel.ZipCity)" Disabled />
+                    <MudTextField Label="Kanton" @bind-Value="@companyFormModel.CantonName" Disabled />
+                    <MudTextField Label="Land" @bind-Value="@companyFormModel.CountryName" Disabled />
+                    <MudTextField Label="Telefonnummer" @bind-Value="@companyFormModel.PhoneNumber" For="@(() => companyFormModel.PhoneNumber)" Required="true"/>
+                    <MudTextField Label="E-Mail" @bind-Value="@companyFormModel.EMailAddress" For="@(() => companyFormModel.EMailAddress)" Required="true"/>
+                    <MudTextField Label="Website" @bind-Value="@companyFormModel.WebsiteAddress" For="@(() => companyFormModel.WebsiteAddress)" Required="false"/>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Firma erfassen</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</EditForm>
+
+@code {
+    private CompanyRequest companyFormModel = new CompanyRequest();
+
+    private IEnumerable<CompanyTypeRequest> companyTypes;
+    private IEnumerable<CountryRequest> countries;
+    private IEnumerable<ZipRequest> zips;
+    private CompanyTypeRequest selectedCompanyType;
+    private CountryRequest selectedCountry;
+    private ZipRequest _selectedZip;
+    private ZipRequest selectedZip
+    {
+        get => _selectedZip;
+        set
+        {
+            if (value != null)
+            {
+                _selectedZip = value;
+    // Setzen Sie sowohl die IDs als auch die Anzeigenamen
+                companyFormModel.ZipCity = value.City;
+                companyFormModel.CantonName = value.Canton; // Name des Kantons
+                companyFormModel.CountryName = value.Country; // Name des Landes
+            }
+        }
+    }
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    private async Task LoadCompanyTypes()
+    {
+        if (companyTypes == null || !companyTypes.Any())
+        {
+            var companyTypeResponses = await KujiraBackendApi.GetCompanyTypes();
+            companyTypes = companyTypeResponses.Select(c => new CompanyTypeRequest(c.Id, c.Type)).ToList();
+        }
+    }
+
+    private async Task LoadCountries()
+    {
+        if (countries == null || !countries.Any())
+        {
+            var countryResponses = await KujiraBackendApi.GetCountries();
+            countries = countryResponses.Select(c => new CountryRequest(c.Id, c.Name)).ToList();
+        }
+    }
+
+    // private async Task LoadZipsAndCities()
+    // {
+    //     if (zips == null || !zips.Any())
+    //     {
+    //         var zipResponses = await KujiraBackendApi.GetZips();
+    //         zips = zipResponses.Select(c => new ZipRequest(c.Id, c.Code, c.City, c.Canton, c.Country)).ToList();
+    //     }
+    // }
+
+    private async Task GetByCodeWithCantonAndCountry()
+    {
+        if (zips == null || !zips.Any())
+        {
+            var zipResponses = await KujiraBackendApi.GetZips();
+            zips = zipResponses.Select(c => new ZipRequest(c.Id, c.Code, c.City, c.CantonId, c.Canton, c.CountryId, c.Country)).ToList();
+        }
+    }
+
+
+    [Parameter]
+    public EventCallback<bool> OnCompanyCreated { get; set; }
+    private async Task OnValidSubmit()
+    {
+        try
+        {
+            companyFormModel.CompanyTypeId = selectedCompanyType.Id;
+            companyFormModel.CompanyTypeName = selectedCompanyType.Type;
+            companyFormModel.ZipCode = selectedZip.Code;
+            await KujiraBackendApi.CreateCompany((CompanyRequest)companyFormModel);
+            Snackbar.Add("Firma erfolgreich erfasst", Severity.Success);
+            await OnCompanyCreated.InvokeAsync(true);
+            MudDialog.Close(DialogResult.Ok(true));
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Fehler beim Erstellen der Company: {ex}");
+            Snackbar.Add($"Fehler beim Erfassen der Firma: {ex.Message}", Severity.Error);
+        }
+    }
+
+}

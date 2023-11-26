@@ -3,25 +3,26 @@ using Kujira.Backend.Api.DTOs;
 using Kujira.Backend.User.Domain;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Kujira.Backend.Api.Controllers;
+namespace Kujira.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class UsersController : ControllerBase
+public class UserController : ControllerBase
 {
     private readonly IMapper _mapper;
+    private readonly IPersonalInformationRepository _personalInformationRepository;
     private readonly IUserRepository _userRepository;
 
-    public UsersController(IUserRepository userRepository, IMapper mapper)
+    public UserController(IUserRepository userRepository, IPersonalInformationRepository personalInformationRepository, IMapper mapper)
     {
         _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+        _personalInformationRepository = personalInformationRepository ?? throw new ArgumentNullException(nameof(personalInformationRepository));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
     [HttpGet]
     public ActionResult<IEnumerable<UserDto>> GetUsers()
     {
-        Console.WriteLine("GetUsers wurde aufgerufen!");
         var users = _userRepository.GetAll();
         var userDtos = _mapper.Map<IEnumerable<UserDto>>(users);
         return Ok(userDtos);
@@ -43,20 +44,37 @@ public class UsersController : ControllerBase
     [HttpPost]
     public ActionResult<UserDto> CreateUser(UserDto userDto)
     {
-        var user = _mapper.Map<User.Domain.User>(userDto);
+        var user = _mapper.Map<User>(userDto);
+        user.PersonalInformation = _mapper.Map<PersonalInformation>(userDto);
         _userRepository.Create(user);
-        return CreatedAtAction(nameof(GetUser), new { id = user.Id }, _mapper.Map<UserDto>(user));
+        return CreatedAtAction(nameof(GetUser), new
+        {
+            id = user.Id
+        }, _mapper.Map<UserDto>(user));
     }
 
     [HttpPut("{id}")]
     public IActionResult UpdateUser(Guid id, UserDto userDto)
     {
-        if (id != userDto.Id)
+        var user = _userRepository.Get(id);
+        if (user == null)
         {
-            return BadRequest();
+            throw new KeyNotFoundException("User not found");
         }
 
-        var user = _mapper.Map<User.Domain.User>(userDto);
+        var personalInfo = user.PersonalInformation;
+        if (personalInfo == null)
+        {
+            throw new KeyNotFoundException("PersonalInformation not found");
+        }
+
+        // Aktualisieren der PersonalInformation
+        personalInfo.PhoneNumber = userDto.PhoneNumber;
+        personalInfo.DateOfBirth = userDto.DateOfBirth;
+        //_personalInformationRepository.Update(personalInfo);
+
+        // Mapping und Aktualisieren des User-Objekts
+        _mapper.Map(userDto, user);
         _userRepository.Update(user);
 
         return NoContent();

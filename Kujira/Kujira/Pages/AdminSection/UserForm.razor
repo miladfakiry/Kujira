@@ -1,0 +1,73 @@
+﻿@using Kujira.Api
+@using Kujira.Api.Requests
+@using Kujira.Gui.Api.Requests
+@using MudBlazor
+@inject IKujiraBackendApi KujiraBackendApi
+@inject ISnackbar Snackbar
+
+
+<EditForm Model="@userFormModel" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator/>
+    <MudGrid>
+        <MudItem xs="12">
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Vorname" @bind-Value="@userFormModel.FirstName" For="@(() => userFormModel.FirstName)" />
+                    <MudTextField Label="Nachname" @bind-Value="@userFormModel.LastName" For="@(() => userFormModel.LastName)" />
+                    <MudDatePicker Label="Geburtsdatum" Editable="true" @bind-Date="userFormModel.DateOfBirth" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" />
+                    <MudTextField Label="Telefonnummer" @bind-Value="@userFormModel.PhoneNumber" For="@(() => userFormModel.PhoneNumber)" Required="false" />
+                    <MudSelect T="CompanyOption" Label="Firma" @bind-Value="selectedCompany">
+                        @if (companies != null)
+                        {
+                            @foreach (var company in companies)
+                            {
+                                <MudSelectItem Value="new CompanyOption(company.Id, company.Name)" />
+                            }
+                        }
+                        else
+                        {
+                            <MudSelectItem Value="@(new CompanyOption(Guid.Empty, "Keine Firmen verfügbar"))" Disabled />
+                        }
+                    </MudSelect>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Benutzer erstellen</MudButton>
+                </MudCardActions>
+            </MudCard>
+    </MudItem>
+    </MudGrid>
+</EditForm>
+
+@code {
+    private UserRequest userFormModel = new UserRequest();
+    private IEnumerable<CompanyRequest> companies;
+    private CompanyOption selectedCompany;
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var companyResponses = await KujiraBackendApi.GetCompanies();
+        companies = companyResponses.Select(c => new CompanyRequest { Id = c.Id, Name = c.Name }).ToList();
+    }
+
+    [Parameter]
+    public EventCallback<bool> OnUserCreated { get; set; }
+    private async Task OnValidSubmit()
+    {
+        try
+        {
+            userFormModel.CompanyId = selectedCompany.Id;
+            await KujiraBackendApi.CreateUser(userFormModel);
+            Snackbar.Add("Benutzer erfolgreich erstellt", Severity.Success);
+            await OnUserCreated.InvokeAsync(true);
+            MudDialog.Close(DialogResult.Ok(true));
+            
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Fehler beim Erstellen des Benutzers: {ex.Message}", Severity.Error);
+        }
+    }
+
+}

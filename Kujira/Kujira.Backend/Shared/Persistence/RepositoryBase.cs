@@ -1,27 +1,25 @@
 ﻿using Kujira.Backend.User.Persistence;
-using Microsoft.EntityFrameworkCore;
 
 namespace Kujira.Backend.Shared.Persistence;
 
 public abstract class RepositoryBase<T> : IRepositoryBase<T> where T : DbItem
 {
-    protected DbContextBase<T> _dbContext;
+    protected KujiraContext _dbContext;
 
-    protected RepositoryBase(DbContextBase<T> dbContext)
+    protected RepositoryBase(KujiraContext dbContext)
     {
         _dbContext = dbContext;
     }
 
 
-
     public IEnumerable<T>? GetAll()
     {
-        return _dbContext.DbSet;
+        return _dbContext.Set<T>().ToList();
     }
 
     public T? Get(Guid id)
     {
-        var dbItem = _dbContext.DbSet.Find(id);
+        var dbItem = _dbContext.Set<T>().Find(id);
         if (dbItem == null)
         {
             throw new KeyNotFoundException();
@@ -32,12 +30,7 @@ public abstract class RepositoryBase<T> : IRepositoryBase<T> where T : DbItem
 
     public void Update(T dbItem)
     {
-        if (_dbContext.DbSet == null)
-        {
-            var test = 1;
-        }
-
-        _dbContext.DbSet?.Update(dbItem);
+        _dbContext.Set<T>()?.Update(dbItem);
         _dbContext.SaveChanges();
     }
 
@@ -46,19 +39,20 @@ public abstract class RepositoryBase<T> : IRepositoryBase<T> where T : DbItem
         var dbItem = Get(id);
         if (dbItem != null)
         {
-            _dbContext.DbSet?.Remove(dbItem);
+            _dbContext.Set<T>()?.Remove(dbItem);
+            _dbContext.SaveChanges();
         }
         else
         {
             throw new KeyNotFoundException();
         }
 
-        _dbContext.SaveChanges();
+        
     }
 
     public void Create(T dbItem)
     {
-        _dbContext.DbSet?.Add(dbItem);
+        _dbContext.Set<T>()?.Add(dbItem);
         _dbContext.SaveChanges();
     }
 }

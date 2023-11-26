@@ -1,0 +1,89 @@
+﻿@using Kujira.Gui.Api.Requests
+@using MudBlazor
+@using Kujira.Api
+@inject IKujiraBackendApi KujiraBackendApi
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <!-- Felder für die Bearbeitung der Firma -->
+        <MudTextField Label="Firmenname" @bind-Value="@company.Name"/>
+        <MudTextField Label="Strasse" @bind-Value="@company.AddStreet"/>
+        <MudTextField Label="Nummer" @bind-Value="@company.AddStreetNumber"/>
+        <MudTextField Label="PLZ" @bind-Value="@company.ZipCode"/>
+        <MudTextField Label="Stadt" @bind-Value="@company.ZipCity"/>
+        <MudTextField Label="Kanton" @bind-Value="@company.CantonName"/>
+        <MudTextField Label="Land" @bind-Value="@company.CountryName"/>
+        <MudTextField Label="Telefonnummer" @bind-Value="@company.PhoneNumber"/>
+        <MudTextField Label="E-Mail" @bind-Value="@company.EMailAddress"/>
+        <MudTextField Label="Website" @bind-Value="@company.WebsiteAddress"/>
+
+        <!-- Dropdown für den Firmen-Typ -->
+        <MudSelect T="CompanyTypeRequest" Label="Firmentyp" @bind-Value="@selectedCompanyType" OnOpen="@LoadCompanyTypes">
+            @if (companyTypes != null)
+            {
+
+
+                @foreach (var type in companyTypes)
+                {
+                    <MudSelectItem Value="@type"/>
+                }
+            }
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@Cancel">Abbrechen</MudButton>
+        <MudButton OnClick="@SaveCompany">Speichern</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    [Parameter]
+    public CompanyRequest company { get; set; }
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    private IEnumerable<CompanyTypeRequest> companyTypes;
+    private CompanyTypeRequest selectedCompanyType;
+
+    protected override async Task OnInitializedAsync()
+    {
+        companyTypes = await KujiraBackendApi.GetCompanyTypes();
+        if (companyTypes != null && company.CompanyTypeId != Guid.Empty)
+        {
+            selectedCompanyType = companyTypes.FirstOrDefault(ct => ct.Id == company.CompanyTypeId);
+        }
+
+        // Fallback, falls keine Übereinstimmung gefunden wurde
+        if (selectedCompanyType == null)
+        {
+            selectedCompanyType = companyTypes?.FirstOrDefault();
+        }
+    }
+
+    private async Task LoadCompanyTypes()
+    {
+        if (companyTypes == null || !companyTypes.Any())
+        {
+            var companyTypeRespones = await KujiraBackendApi.GetCompanyTypes();
+            companyTypes = companyTypeRespones.Select(c => new CompanyTypeRequest(c.Id, c.Type)).ToList();
+        }
+    }
+
+    private async Task SaveCompany()
+    {
+        company.CompanyTypeId = selectedCompanyType.Id;
+        await KujiraBackendApi.UpdateCompany(company.Id, company);
+        Snackbar.Add("Firma erfolgreich aktualisiert", Severity.Success);
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+
+}

@@ -1,0 +1,99 @@
+﻿@using Kujira.Api.Requests
+@using MudBlazor
+@using Kujira.Api
+@inject IKujiraBackendApi KujiraBackendApi
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudDialog >
+    <DialogContent>
+        <!-- Platz für Bearbeitungsfelder, z.B. MudTextField für FirstName, LastName usw. -->
+        <MudTextField Label="Vorname" @bind-Value="@user.FirstName"/>
+        <MudTextField Label="Nachname" @bind-Value="@user.LastName"/>
+        <MudTextField Label="Geburtsdatum" @bind-Value="@user.DateOfBirth"/>
+        <MudTextField Label="Telefonnummer" @bind-Value="@user.PhoneNumber"/>
+        <MudSelect T="CompanyOption" Label="Firma" @bind-Value="@selectedCompany" OnOpen=@LoadCompanies>
+            @if (companies != null)
+            {
+                @foreach (var company in companies)
+                {
+                    <MudSelectItem Value="@company"/>
+                }
+            }
+        </MudSelect>
+        <MudCheckBox T="bool" Label="Ist inaktiv" Checked="@user.IsInactive" CheckedChanged="@((bool value) => OnIsActiveChanged(value))"/>
+
+       
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@Cancel">Abbrechen</MudButton>
+        <MudButton OnClick="@SaveUser">Speichern</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    [Parameter]
+    public UserRequest user { get; set; }
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    private IEnumerable<CompanyOption> companies;
+    private CompanyOption selectedCompany;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var companyResponses = await KujiraBackendApi.GetCompanies();
+        companies = companyResponses?.Select(c => new CompanyOption(c.Id, c.Name)).ToList() ?? new List<CompanyOption>();
+
+        if (user != null && user.CompanyId != Guid.Empty && companies.Any())
+        {
+            selectedCompany = companies.FirstOrDefault(c => c.Id == user.CompanyId);
+        }
+        else
+        {
+            Console.WriteLine("COMPANIES WAR NULL!!!");
+            selectedCompany = companies.FirstOrDefault();
+        }
+    }
+
+    private async Task LoadCompanies()
+    {
+        if (companies == null || !companies.Any())
+        {
+            var companyResponses = await KujiraBackendApi.GetCompanies();
+            companies = companyResponses.Select(c => new CompanyOption(c.Id, c.Name)).ToList();
+        }
+
+    // Stellen Sie sicher, dass die ausgewählte Firma korrekt initialisiert ist
+        if (user != null && user.CompanyId != Guid.Empty && companies.Any())
+        {
+            selectedCompany = companies.FirstOrDefault(c => c.Id == user.CompanyId);
+        }
+        else
+        {
+            selectedCompany = companies.FirstOrDefault();
+        }
+    }
+
+    private async Task SaveUser()
+    {
+        user.CompanyId = selectedCompany.Id;
+        await KujiraBackendApi.UpdateUser(user.Id, user);
+        MudDialog.Close();
+        Snackbar.Add("Benutzer erfolgreich gespeichert", Severity.Success);
+    }
+
+    private void OnIsActiveChanged(bool newValue)
+    {
+        user.IsInactive = newValue;
+    }
+
+
+    private void Cancel()
+    {
+        MudDialog.Close();
+    }
+
+}

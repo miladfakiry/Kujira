@@ -1,25 +1,33 @@
 ﻿@page "/adminUser"
-@using MudBlazor
-@using Kujira.Services
 @using Kujira.Api.Requests
+@using MudBlazor
 @using Kujira.Api
 @inject IDialogService DialogService
-@inject UserApiService UserApi
 @inject IKujiraBackendApi KujiraBackendApi
-
 
 
 <PageTitle>User Verwaltung</PageTitle>
 
-<h1>User verwalten</h1>
+<div class="d-flex justify-space-between align-items-center my-2">
+    <h1>User verwalten</h1>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenCreateUserDialog">Benutzer erfassen</MudButton>
+</div>
 
-<MudDataGrid Items="@_users"  Hover="@_hover" Filterable="false" SortMode="@SortMode.Multiple" Groupable="true" ReadOnly="@_readOnly"
+<MudDataGrid Items="@_users"
+             Hover="@_hover"
+             Filterable="false"
+             SortMode="@SortMode.Multiple"
+             Groupable="true"
+             ReadOnly="@_readOnly"
              StartedEditingItem="@startedEditingCallback"
              CanceledEditingItem="@canceledEditingCallback"
              CommittedItemChanges="@committedChangesCallback"
-             Bordered="false" Dense="false" EditTrigger="@(_editTriggerRowClick ? DataGridEditTrigger.OnRowClick : DataGridEditTrigger.Manual)">
+             Bordered="false"
+             Dense="false">
     <Columns>
+        @* <PropertyColumn Property="x => x.Id" Title="Id" Filterable="false"/> *@
         <PropertyColumn Property="x => x.Id" Title="Id" Filterable="false"/>
+
         <PropertyColumn Property="x => x.FirstName" Title="Vorname"/>
         <PropertyColumn Property="x => x.LastName" Title="Nachname">
 
@@ -29,14 +37,6 @@
                 <MudPopover Open="@_filterOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter"
                             Style="width:150px">
                     <MudStack Spacing="0">
-                        @* <MudCheckBox T="bool" Label="Select All" Size="@Size.Small" Checked="@_selectAll" CheckedChanged="@SelectAll" />
-                        <MudStack Spacing="0" Style="overflow-y:auto;max-height:250px">
-                        @foreach (var item in context.Items)
-                        {
-                        <MudCheckBox T="bool" Label="@($"{item.Sign}")" Size="@Size.Small" Checked="@(_selectedItems.Contains(item))"
-                        CheckedChanged="@((value) => SelectedChanged(value, item))" />
-                        } *@
-                        @*  </MudStack> *@
                         <MudStack Row="true">
                             <MudButton OnClick="@(() => ClearFilterAsync(context))">Clear</MudButton>
                             <MudButton Color="@Color.Primary" OnClick="@(() => ApplyFilterAsync(context))">Filter</MudButton>
@@ -46,26 +46,26 @@
             </FilterTemplate>
 
         </PropertyColumn>
-        <PropertyColumn Property="x => x.DateOfBirth" Title="Geburtsdatum" IsEditable="true" />
-        <PropertyColumn Property="x => x.EMail" Title="E-Mail-Adresse" />
-        <PropertyColumn Property="x => x.PhoneNumber" Title="Telefonnummer" Required="false" />
-        <PropertyColumn Property="x => x.CreateDate" Title="Erstellt am:" />
-        <PropertyColumn Property="x => x.IsInactive" Title="Inaktiv" IsEditable="true" Filterable="true" />
-      
+        <PropertyColumn Property="x => x.DateOfBirth" Title="Geburtsdatum" IsEditable="true" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" />
+        <PropertyColumn Property="x => x.PhoneNumber" Title="Telefonnummer" Required="false"/>
+        <PropertyColumn Property="x => x.CreateDate" Title="Erstellt am:"/>
+        <PropertyColumn Property="x => x.IsInactive" Title="Inaktiv" IsEditable="true" Filterable="true"/>
+
         <TemplateColumn Hidden="@_isCellEditMode">
             <CellTemplate>
-                <MudIconButton Color="Color.Primary" Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@context.Actions.StartEditingItemAsync" />
-                <MudIconButton Color="Color.Error" Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@( () => DeleteUser(context.Item) )" />
+                <MudIconButton Color="Color.Primary" Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => StartedEditingItem(context.Item))"/>
+                <MudIconButton Color="Color.Error" Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => DeleteUser(context.Item))"/>
             </CellTemplate>
         </TemplateColumn>
 
     </Columns>
 
     <PagerContent>
-        <MudDataGridPager T="UserRequest" />
+        <MudDataGridPager T="UserRequest"/>
     </PagerContent>
 
 </MudDataGrid>
+
 
 @code {
     private IEnumerable<UserRequest> _users = new List<UserRequest>();
@@ -83,7 +83,7 @@
 
     private bool _readOnly;
     private bool _isCellEditMode;
-    private bool _editTriggerRowClick;
+    private static bool _editTriggerRowClick;
     private bool _hover;
 
     private EventCallback<UserRequest> startedEditingCallback;
@@ -101,11 +101,11 @@
     private async Task LoadUsersAsync()
     {
         _users = await KujiraBackendApi.GetUsers();
+        StateHasChanged();
     }
 
     protected override async Task OnInitializedAsync()
     {
-
         startedEditingCallback = EventCallback.Factory.Create<UserRequest>(this, StartedEditingItem);
         canceledEditingCallback = EventCallback.Factory.Create<UserRequest>(this, CanceledEditingItem);
         committedChangesCallback = EventCallback.Factory.Create<UserRequest>(this, CommittedItemChanges);
@@ -121,6 +121,27 @@
             throw;
         }
     }
+
+    private async Task OpenCreateUserDialog()
+    {
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true
+        };
+        var parameters = new DialogParameters();
+        parameters.Add("OnUserCreated", EventCallback.Factory.Create<bool>(this, async result =>
+        {
+            if (result)
+            {
+                await LoadUsersAsync();
+            }
+        }));
+
+        var dialog = DialogService.Show<UserForm>("Benutzer erfassen", parameters, options);
+        await dialog.Result;
+    }
+
 
     void OpenFilter()
     {
@@ -171,15 +192,48 @@
         }
     }
 
-
     private async Task StartedEditingItem(UserRequest item)
     {
-        Console.WriteLine("StartEditing wurde ausgeführt");
+        try
+        {
+            Console.WriteLine("Bearbeitung von Benutzer mit ID: " + item.Id + " startet.");
+
+            // Lade Benutzerdaten
+            var userToEdit = await KujiraBackendApi.GetUser(item.Id);
+            if (userToEdit == null)
+            {
+                Console.WriteLine("Benutzer nicht gefunden.");
+                return;
+            }
+
+            // Öffne den Bearbeitungsdialog
+            var options = new DialogOptions
+            {
+                MaxWidth = MaxWidth.ExtraSmall,
+                FullWidth = true,
+
+            };
+            var parameters = new DialogParameters
+            {
+                ["user"] = userToEdit
+            };
+            var dialog = DialogService.Show<EditUserDialog>("Benutzer bearbeiten", parameters, options);
+            var result = await dialog.Result;
+
+            if (!result.Cancelled)
+            {
+                Console.WriteLine("Benutzer erfolgreich bearbeitet.");
+                await LoadUsersAsync(); // Aktualisiert die Benutzerliste
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Fehler beim Bearbeiten des Benutzers: " + ex.Message);
+        }
     }
 
     private async Task CanceledEditingItem(UserRequest item)
     {
-     
     }
 
     private async Task CommittedItemChanges(UserRequest item)
@@ -188,7 +242,6 @@
         {
             await KujiraBackendApi.UpdateUser(item.Id, item);
             Console.WriteLine("Erfolgreich geändert!");
-
         }
         catch (Exception ex)
         {
@@ -196,9 +249,10 @@
         }
     }
 
+
     private async Task DeleteUser(UserRequest item)
     {
-        var confirmation = await DialogService.ShowMessageBox("Bestätigen", "Möchten Sie diesen Benutzer wirklich löschen?", yesText: "Löschen", cancelText: "Abbrechen");
+        var confirmation = await DialogService.ShowMessageBox("Bestätigen", "Möchten Sie diesen Benutzer wirklich löschen?", "Löschen", cancelText: "Abbrechen");
         if ((bool) !confirmation)
             return;
 

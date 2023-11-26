@@ -18,18 +18,6 @@ namespace Kujira.Backend.Api.DTOs
         [JsonProperty("lastName")]
         public string LastName { get; set; }
 
-        [JsonPropertyName("dateOfBirth")]
-        [JsonProperty("dateOfBirth")]
-        public DateTime DateOfBirth { get; set; }
-
-        [JsonPropertyName("eMail")]
-        [JsonProperty("eMail")]
-        public string EMail { get; set; }
-
-        [JsonPropertyName("phoneNumber")]
-        [JsonProperty("phoneNumber")]
-        public string PhoneNumber { get; set; }
-
         [JsonPropertyName("isInactive")]
         [JsonProperty("isInactive")]
         public bool IsInactive { get; set; }
@@ -37,5 +25,21 @@ namespace Kujira.Backend.Api.DTOs
         [JsonPropertyName("createDate")]
         [JsonProperty("createDate")]
         public DateTime CreateDate { get; set; }
+
+        // Persönliche Informationen
+        [JsonPropertyName("dateOfBirth")]
+        [JsonProperty("dateOfBirth")]
+        public DateTime DateOfBirth { get; set; }
+
+        [JsonPropertyName("phoneNumber")]
+        [JsonProperty("phoneNumber")]
+        public string? PhoneNumber { get; set; }
+
+        
+        [JsonPropertyName("companyId")]
+        [JsonProperty("companyId")]
+        public Guid CompanyId { get; set; }
+
+
     }
 }

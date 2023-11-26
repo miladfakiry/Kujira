@@ -1,8 +1,11 @@
-﻿namespace Kujira.Backend.User.Domain;
+﻿using Kujira.Backend.Company.Domain;
+
+namespace Kujira.Backend.User.Domain;
 
 public class UserService
 {
     private readonly IUserRepository _userRepository;
+    private readonly ICompanyRepository _companyRepository;
 
 
     //public UserService(IUserRepository userRepository)

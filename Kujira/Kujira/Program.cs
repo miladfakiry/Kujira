@@ -1,8 +1,8 @@
 using System.Globalization;
-using Kujira;
 using Kujira.Api;
 using Kujira.Backend.User.Domain;
 using Kujira.Backend.User.Persistence;
+using Kujira.Gui;
 using Kujira.Services;
 using Kujira.Shared;
 using Microsoft.AspNetCore.Components.Web;
@@ -39,7 +39,7 @@ builder.Services.AddSingleton<IKujiraBackendApi>(provider => RestClient.For<IKuj
 
 builder.Services.AddTransient<MudLocalizer, DictionaryMudLocalizer>();
 
-CultureInfo culture = new CultureInfo("de-DE");
+var culture = new CultureInfo("de-DE");
 CultureInfo.DefaultThreadCurrentCulture = culture;
 CultureInfo.DefaultThreadCurrentUICulture = culture;
 
