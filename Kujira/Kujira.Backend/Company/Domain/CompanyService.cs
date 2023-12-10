@@ -12,25 +12,4 @@ public class CompanyService
         _companyTypeRepository = companyTypeRepository;
         _addressRepository = addressRepository;
     }
-
-    //public async Task<Company> CreateCompanyWithAddressAsync(string name, string email, string phoneNumber, string? websiteAddress, Address address, Guid companyTypeId)
-    //{
-    //    await _addressRepository.CreateAsync(address);
-
-    //    var companyType = await _companyTypeRepository.GetAsync(companyTypeId) ?? throw new Exception("CompanyType not found.");
-
-    //    var company = new Company
-    //    {
-    //        Name = name,
-    //        EMailAddress = email,
-    //        PhoneNumber = phoneNumber,
-    //        WebsiteAddress = websiteAddress,
-    //        Address = address,
-    //        CompanyType = companyType
-    //    };
-
-    //    await _companyRepository.CreateAsync(company);
-
-    //    return company;
-    //}
 }

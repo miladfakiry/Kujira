@@ -35,7 +35,18 @@ namespace Kujira.Backend.Api.DTOs
         [JsonProperty("phoneNumber")]
         public string? PhoneNumber { get; set; }
 
-        
+        [JsonPropertyName("email")]
+        [JsonProperty("email")]
+        public string? Email { get; set; }
+
+        [JsonPropertyName("password")]
+        [JsonProperty("password")]
+        public string? Password { get; set; }
+
+        [JsonPropertyName("roleId")]
+        [JsonProperty("roleId")]
+        public Guid RoleId { get; set; }
+
         [JsonPropertyName("companyId")]
         [JsonProperty("companyId")]
         public Guid CompanyId { get; set; }

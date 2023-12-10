@@ -1,20 +1,33 @@
 ﻿@using MudBlazor
 @inherits LayoutComponentBase
-
+@using Microsoft.AspNetCore.Components.Authorization
+@using Kujira.Gui.Services
+@using System.Security.Claims
+@inject AuthenticationService AuthService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
 
 
 <MudThemeProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
-
+<CascadingAuthenticationState>
 <MudLayout>
     
     @*Header AppBar*@
     <MudAppBar Color="Color.Transparent" Fixed="true">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudSpacer />
+
+            <MudMenu>
+                <ActivatorContent>
+                    <MudAvatar Image="images/ProfilePicture.jpg" />
+                </ActivatorContent>
+                <ChildContent>
+                    <MudMenuItem OnClick="@Logout">Logout</MudMenuItem>
+                </ChildContent>
+            </MudMenu>
         
-        <MudIconButton Icon="@Icons.Custom.Brands.Google" Color="Color.Inherit"/>
     </MudAppBar>
     
     @*Left NavBar*@
@@ -26,21 +39,25 @@
             <MudDivider Class="my-2"/>
             <MudNavLink Href="/dashboard" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
             <MudNavGroup Title="Applikationen" Icon="@Icons.Material.Filled.SettingsApplications" Expanded="true">
-                <MudNavLink Href="/searchPage" Icon="@Icons.Material.Filled.Search" IconColor="Color.Success">Platzsuche</MudNavLink>
-                <MudNavLink Href="/offerPlaces" Icon="@Icons.Material.Filled.Place" IconColor="Color.Info">Plätze anbieten</MudNavLink>
-            </MudNavGroup>
-            <MudNavLink Href="/servers" Icon="@Icons.Material.Filled.Storage">Servers</MudNavLink>
-            <MudNavLink Href="/billing" Icon="@Icons.Material.Filled.Receipt" Disabled="true">Rechnungen</MudNavLink>
-            <MudNavGroup Title="Settings" Icon="@Icons.Material.Filled.Settings" Expanded="true">
-                <MudNavLink Href="/users" Icon="@Icons.Material.Filled.People" IconColor="Color.Success">Users</MudNavLink>
-                <MudNavLink Href="/security" Icon="@Icons.Material.Filled.Security" IconColor="Color.Info">Security</MudNavLink>
+                @if (isSocialService)
+                {
+                    <MudNavLink Href="/searchPage">Platzsuche</MudNavLink>
+                }
+                @if (isAssociation)
+                {
+                    <MudNavLink Href="/offerPlaces">Plätze anbieten</MudNavLink>
+                    <MudNavLink Href="/showUserOffer">Angebotene Plätze</MudNavLink>
+                }
             </MudNavGroup>
             
-            <MudNavGroup Title="Adminbereich" Icon="@Icons.Material.Filled.AdminPanelSettings" Expanded="true">
-                <MudNavLink Href="/adminUser" Icon="@Icons.Material.Filled.People" IconColor="Color.Success">Users</MudNavLink>
-                <MudNavLink Href="/adminPlaces" Icon="@Icons.Material.Filled.Place" IconColor="Color.Success">Places</MudNavLink>
-                <MudNavLink Href="/adminCompany" Icon="@Icons.Material.Filled.AddBusiness" IconColor="Color.Info">Companies</MudNavLink>
-            </MudNavGroup>
+            @if (isAdmin)
+            {
+                <MudNavGroup Title="Adminbereich" Icon="@Icons.Material.Filled.AdminPanelSettings" Expanded="true">
+                    <MudNavLink Href="/adminUser">Users</MudNavLink>
+                    <MudNavLink Href="/adminPlaces">Places</MudNavLink>
+                    <MudNavLink Href="/adminCompany">Companies</MudNavLink>
+                </MudNavGroup>
+            }
         </MudNavMenu>
         
         @*Footer AppBar*@
@@ -62,12 +79,63 @@
         </MudContainer>
     </MudMainContent>
 </MudLayout>
+</CascadingAuthenticationState>
 
 @code {
-    bool _drawerOpen = true;
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    private bool _drawerOpen = true;
+    private bool isAdmin = false;
+    private bool isAssociation = false;
+    private bool isSocialService = false;
+
+    private ClaimsPrincipal user = new ClaimsPrincipal();
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthenticationStateProvider.AuthenticationStateChanged += AuthenticationStateChanged;
+        await CheckRoles();
+        StateHasChanged();
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = authState.User;
+    }
+
+    private async Task CheckRoles()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        Console.WriteLine($"IsAuthenticated: {user.Identity.IsAuthenticated}");
+
+        isAdmin = user.IsInRole("Administrator");
+        isAssociation = user.IsInRole("Association");
+        isSocialService = user.IsInRole("SocialService");
+
+        StateHasChanged();
+    }
+
+    private async void AuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+        await CheckRoles();
+        await Task.CompletedTask;
+        StateHasChanged();
+    }
 
     void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
+    }
+
+    public void Dispose()
+    {
+        AuthenticationStateProvider.AuthenticationStateChanged -= AuthenticationStateChanged;
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        ((CustomAuthenticationStateProvider)AuthenticationStateProvider).NotifyUserLogout();
+        NavigationManager.NavigateTo("/loginPage");
     }
 }

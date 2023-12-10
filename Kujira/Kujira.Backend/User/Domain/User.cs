@@ -50,6 +50,7 @@ public class User : DbItem
 
     public ICollection<Offer.Domain.Offer> Offers { get; set; }
     public ICollection<Request.Domain.Request> Requests { get; set; }
+    public ICollection<UserRole> UserRoles { get; set; }
 
 
 }

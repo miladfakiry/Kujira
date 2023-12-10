@@ -24,5 +24,4 @@ public class UserRepository : RepositoryBase<Domain.User>, IUserRepository
                          .Include(u => u.PersonalInformation)
                          .FirstOrDefault(u => u.Id == id);
     }
-
 }

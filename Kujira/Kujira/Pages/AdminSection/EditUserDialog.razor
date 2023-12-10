@@ -7,7 +7,6 @@
 
 <MudDialog >
     <DialogContent>
-        <!-- Platz für Bearbeitungsfelder, z.B. MudTextField für FirstName, LastName usw. -->
         <MudTextField Label="Vorname" @bind-Value="@user.FirstName"/>
         <MudTextField Label="Nachname" @bind-Value="@user.LastName"/>
         <MudTextField Label="Geburtsdatum" @bind-Value="@user.DateOfBirth"/>
@@ -66,7 +65,6 @@
             companies = companyResponses.Select(c => new CompanyOption(c.Id, c.Name)).ToList();
         }
 
-    // Stellen Sie sicher, dass die ausgewählte Firma korrekt initialisiert ist
         if (user != null && user.CompanyId != Guid.Empty && companies.Any())
         {
             selectedCompany = companies.FirstOrDefault(c => c.Id == user.CompanyId);

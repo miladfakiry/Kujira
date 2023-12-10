@@ -1,5 +1,6 @@
 ﻿using Kujira.Api.Requests;
 using Kujira.Gui.Api.Requests;
+using Kujira.Gui.Api.Response;
 using RestEase;
 
 namespace Kujira.Api;
@@ -47,7 +48,32 @@ public interface IKujiraBackendApi
     Task<IEnumerable<CountryRequest>> GetCountries();
 
 
-
     [Get("/api/Zip")]
     Task<IEnumerable<ZipRequest>> GetZips();
+
+    [Get("/api/Role")]
+    Task<IEnumerable<RoleRequest>> GetRoles();
+
+
+    [Post("/api/Auth/login")]
+    Task<LoginResponse> Login([Body] LoginRequest loginRequest);
+
+
+    [Get("/api/Offer")]
+    Task<IEnumerable<OfferRequest>> GetOffers();
+
+    [Get("/api/Offer/{id}")]
+    Task<OfferRequest> GetOfferById([Path] Guid id);
+
+    [Get("/api/Offer/User/{userId}")]
+    Task<IEnumerable<OfferRequest>> GetOfferByUserId([Path] Guid userId);
+
+    [Post("/api/Offer")]
+    Task CreateOffer([Body] OfferRequest offerRequest);
+
+    [Put("/api/Offer/{id}")]
+    Task UpdateOffer([Path] Guid id, [Body] OfferRequest offerRequest);
+
+    [Delete("/api/Offer/{id}")]
+    Task DeleteOffer([Path] Guid id);
 }

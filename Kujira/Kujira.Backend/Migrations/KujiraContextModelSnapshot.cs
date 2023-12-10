@@ -213,8 +213,10 @@ namespace Kujira.Backend.Migrations
                         .HasColumnName("OffBiologicalChildren");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("OffCreatedAt");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("OffCreatedAt")
+                        .HasDefaultValueSql("NOW()");
 
                     b.Property<bool>("CrisisIntervention")
                         .HasColumnType("boolean")
@@ -271,8 +273,10 @@ namespace Kujira.Backend.Migrations
                         .HasColumnName("ReqBiologicalChildren");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("ReqCreatedAt");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ReqCreatedAt")
+                        .HasDefaultValueSql("NOW()");
 
                     b.Property<bool>("CrisisIntervention")
                         .HasColumnType("boolean")
@@ -375,6 +379,26 @@ namespace Kujira.Backend.Migrations
                     b.ToTable("PersonalInformation", "public");
                 });
 
+            modelBuilder.Entity("Kujira.Backend.User.Domain.Role", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("RoleID")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying")
+                        .HasColumnName("RolName");
+
+                    b.HasKey("Id")
+                        .HasName("PK_RoleID");
+
+                    b.ToTable("Roles", "public");
+                });
+
             modelBuilder.Entity("Kujira.Backend.User.Domain.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -393,7 +417,6 @@ namespace Kujira.Backend.Migrations
                         .HasDefaultValueSql("NOW()");
 
                     b.Property<string>("FirstName")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying")
                         .HasColumnName("UseFirstName");
@@ -405,7 +428,6 @@ namespace Kujira.Backend.Migrations
                         .HasDefaultValueSql("false");
 
                     b.Property<string>("LastName")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying")
                         .HasColumnName("UseLastName");
@@ -416,6 +438,21 @@ namespace Kujira.Backend.Migrations
                     b.HasIndex("CompanyId");
 
                     b.ToTable("Users", "public");
+                });
+
+            modelBuilder.Entity("Kujira.Backend.User.Domain.UserRole", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("UserRoles");
                 });
 
             modelBuilder.Entity("Kujira.Backend.Company.Domain.Address", b =>
@@ -445,7 +482,7 @@ namespace Kujira.Backend.Migrations
                     b.HasOne("Kujira.Backend.Company.Domain.Address", "Address")
                         .WithMany()
                         .HasForeignKey("AddressId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Kujira.Backend.Company.Domain.CompanyType", "CompanyType")
@@ -541,9 +578,33 @@ namespace Kujira.Backend.Migrations
                     b.Navigation("Company");
                 });
 
+            modelBuilder.Entity("Kujira.Backend.User.Domain.UserRole", b =>
+                {
+                    b.HasOne("Kujira.Backend.User.Domain.Role", "Role")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Kujira.Backend.User.Domain.User", "User")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Kujira.Backend.Company.Domain.Company", b =>
                 {
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("Kujira.Backend.User.Domain.Role", b =>
+                {
+                    b.Navigation("UserRoles");
                 });
 
             modelBuilder.Entity("Kujira.Backend.User.Domain.User", b =>
@@ -553,6 +614,8 @@ namespace Kujira.Backend.Migrations
                     b.Navigation("PersonalInformation");
 
                     b.Navigation("Requests");
+
+                    b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618
         }

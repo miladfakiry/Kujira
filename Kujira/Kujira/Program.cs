@@ -3,8 +3,10 @@ using Kujira.Api;
 using Kujira.Backend.User.Domain;
 using Kujira.Backend.User.Persistence;
 using Kujira.Gui;
+using Kujira.Gui.Services;
 using Kujira.Services;
 using Kujira.Shared;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor;
@@ -26,10 +28,16 @@ builder.Services.AddTransient(sp => new HttpClient
 // MudBlazor Services
 builder.Services.AddMudServices();
 
+builder.Services.AddAuthorizationCore();
+builder.Services.AddScoped<AuthenticationService>();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+
+
 // Your other services
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<UserApiService>();
+builder.Services.AddSingleton<LoadingService>();
+
 
 // RestEase Service for IKujiraBackendApi
 builder.Services.AddSingleton<IKujiraBackendApi>(provider => RestClient.For<IKujiraBackendApi>(new HttpClient

@@ -29,6 +29,21 @@
                             <MudSelectItem Value="@(new CompanyOption(Guid.Empty, "Keine Firmen verfügbar"))" Disabled />
                         }
                     </MudSelect>
+                    <MudTextField Label="E-Mail-Adresse" @bind-Value="@userFormModel.Email" For="@(() => userFormModel.Email)" />
+                    <MudTextField Label="Passwort" @bind-Value="@userFormModel.Password" For="@(() => userFormModel.Password)" InputType="InputType.Password" />
+                    <MudSelect T="RoleRequest" Label="Role" @bind-Value="selectedRole" OnOpen="@LoadRoles">
+                    @if (roles != null)
+                    {
+                        @foreach (var role in roles)
+                        {
+                            <MudSelectItem Value="@role"/>
+                        }
+                    }
+                    else
+                    {
+                            <MudSelectItem Value="@(new RoleRequest(Guid.Empty, "Keine Role verfügbar"))" Disabled />
+                    }
+                    </MudSelect>
                 </MudCardContent>
                 <MudCardActions>
                     <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Benutzer erstellen</MudButton>
@@ -41,7 +56,9 @@
 @code {
     private UserRequest userFormModel = new UserRequest();
     private IEnumerable<CompanyRequest> companies;
+    private IEnumerable<RoleRequest> roles;
     private CompanyOption selectedCompany;
+    private RoleRequest selectedRole;
 
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
 
@@ -51,6 +68,15 @@
         companies = companyResponses.Select(c => new CompanyRequest { Id = c.Id, Name = c.Name }).ToList();
     }
 
+    private async Task LoadRoles()
+    {
+        if (roles == null || !roles.Any())
+        {
+            var roleResponses = await KujiraBackendApi.GetRoles();
+            roles = roleResponses.Select(c => new RoleRequest(c.Id, c.Name)).ToList();
+        }
+    }
+
     [Parameter]
     public EventCallback<bool> OnUserCreated { get; set; }
     private async Task OnValidSubmit()
@@ -58,6 +84,7 @@
         try
         {
             userFormModel.CompanyId = selectedCompany.Id;
+            userFormModel.RoleId = selectedRole.Id;
             await KujiraBackendApi.CreateUser(userFormModel);
             Snackbar.Add("Benutzer erfolgreich erstellt", Severity.Success);
             await OnUserCreated.InvokeAsync(true);

@@ -1,0 +1,60 @@
+﻿@using Kujira.Api.Requests
+@using MudBlazor
+@using Kujira.Api
+@inject IKujiraBackendApi KujiraBackendApi
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <!-- Felder für die Bearbeitung des Angebots -->
+        <MudTextField Label="Verfügbare Plätze" @bind-Value="@offer.AvailablePlaces"/>
+        <MudCheckBox T="bool" Label="Langzeitpflege" @bind-Value="@offer.LongTermFamilyCare"/>
+        <MudCheckBox T="bool" Label="Krisenintervention" @bind-Value="@offer.CrisisIntervention"/>
+        <MudCheckBox T="bool" Label="Entlastungsangebot" @bind-Value="@offer.ReliefOffer"/>
+        <MudTextField Label="Aktuell platzierte Pflegekinder" @bind-Value="@offer.CurrentlyPlacedFosterChildren"/>
+        <MudTextField Label="Biologische Kinder" @bind-Value="@offer.BiologicalChildren"/>
+        <MudTextField Label="Zusätzliche Informationen" Multiline @bind-Value="@offer.AdditionalNote"/>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@Cancel">Abbrechen</MudButton>
+        <MudButton OnClick="@SaveOffer">Speichern</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    [Parameter]
+    public OfferRequest offer { get; set; } = new();
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (offer == null)
+        {
+            throw new InvalidOperationException("OfferRequest ist null");
+        }
+    }
+
+    private async Task SaveOffer()
+    {
+        try
+        {
+            await KujiraBackendApi.UpdateOffer(offer.Id, offer);
+            Snackbar.Add("Angebot erfolgreich aktualisiert", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Speichern hat nicht geklappt: {ex} ");
+            throw;
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close();
+    }
+}

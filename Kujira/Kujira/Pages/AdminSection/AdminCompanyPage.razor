@@ -194,7 +194,6 @@
         {
             Console.WriteLine("Bearbeitung von Firma mit Id " + item.Id + " startet.");
 
-            // Lade FirmenDaten
             var companyToEdit = await KujiraBackendApi.GetCompany(item.Id);
             if (companyToEdit == null)
             {

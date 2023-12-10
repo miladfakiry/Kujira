@@ -1,78 +1,53 @@
 ﻿@page "/offerPlaces"
-@using FluentValidation
+@using Kujira.Api.Requests
+@using Kujira.Gui.Api.Requests
+@using Kujira.Gui.Services
 @using MudBlazor
+@using Newtonsoft.Json
+@using Kujira.Api
+@inject IKujiraBackendApi KujiraBackendApi
+@inject ISnackbar Snackbar
+@inject AuthenticationService AuthService
 
 <h1>Plätze anbieten</h1>
 <MudCard>
-    <MudForm Model="@model" @ref="@form" Validation="@(orderValidator.ValidateValue)" ValidationDelay="0">
+    <MudForm Model="@offerRequest" @ref="@form">
         <MudCardContent>
-            <MudTextField @bind-Value="model.Name"
-                          For="@(() => model.Name)"
-                          Immediate="true"
-                          Label="Name"/>
+            <MudTextField @bind-Value="offerRequest.AvailablePlaces" Label="Verfügbare Plätze" For="() => offerRequest.AvailablePlaces"/>
+            <MudCheckBox @bind-Value="offerRequest.LongTermFamilyCare" Label="Langzeitpflege" For="() => offerRequest.LongTermFamilyCare"/>
+            <MudCheckBox @bind-Value="offerRequest.CrisisIntervention" Label="Krisenintervention" For="() => offerRequest.CrisisIntervention"/>
+            <MudCheckBox @bind-Value="offerRequest.ReliefOffer" Label="Entlastungsangebot" For="() => offerRequest.ReliefOffer"/>
 
-            <MudTextField @bind-Value="model.Email"
-                          For="@(() => model.Email)"
-                          Immediate="true"
-                          Label="Email"/>
+            <MudTextField @bind-Value="offerRequest.CurrentlyPlacedFosterChildren" Label="Aktuell platzierte Pflegekinder" For="() => offerRequest.CurrentlyPlacedFosterChildren"/>
+            <MudTextField @bind-Value="offerRequest.BiologicalChildren" Label="Biologische Kinder" For="() => offerRequest.BiologicalChildren"/>
+            <MudTextField @bind-Value="offerRequest.AdditionalNote" Label="Zusätzliche Informationen" Multiline For="() => offerRequest.AdditionalNote"/>
 
-            <MudTextField @bind-Value="model.Address.Address"
-                          For="@(() => model.Address.Address)"
-                          Immediate="true"
-                          Label="Address"/>
-
-            <MudTextField @bind-Value="model.Address.City"
-                          For="@(() => model.Address.City)"
-                          Immediate="true"
-                          Label="City"/>
-
-            <MudTextField @bind-Value="model.Address.Country"
-                          For="@(() => model.Address.Country)"
-                          Immediate="true"
-                          Label="Country"/>
-            <MudTextField @bind-Value="model.AdditionalInformation"
-                          For="@(() => model.AdditionalInformation)"
-                          Immediate="true"
-                          Label="Zusätzliche Informationen"/>
+            <MudSelect T="ZipRequest" Label="PLZ" @bind-Value="@_selectedZip" OnOpen="GetByCodeWithCantonAndCountry">
+                @if (zips != null)
+                {
+                    @foreach (var zip in zips)
+                    {
+                        <MudSelectItem Value="@zip"/>
+                    }
+                }
+            </MudSelect>
         </MudCardContent>
-        <MudCardContent Class="pa-0">
-
-        </MudCardContent>
+        <MudCardActions>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Speichern</MudButton>
+        </MudCardActions>
     </MudForm>
-    <MudCardActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="@(async () => await Submit())">Speichern</MudButton>
-    </MudCardActions>
 </MudCard>
 
 @code {
+    private readonly OfferRequest offerRequest = new();
+    private MudForm form;
+    private IEnumerable<ZipRequest> zips;
+    private ZipRequest _selectedZip;
 
-    [Inject]
-    ISnackbar Snackbar { get; set; }
 
-    MudForm form;
-
-    readonly OrderModelFluentValidator orderValidator = new();
-
-    readonly OrderModel model = new();
-
-    public class OrderModel
+    protected override async Task OnInitializedAsync()
     {
-        public string Name { get; set; }
-        public string Email { get; set; }
-        public string AdditionalInformation { get; set; }
-        public AddressModel Address { get; set; } = new();
-    }
-
-    public class AddressModel
-    {
-        public string Address { get; set; }
-        public string City { get; set; }
-        public string Country { get; set; }
-    }
-
-    public class OrderDetailsModel
-    {
-        public string AdditionalInformation { get; set; }
+        offerRequest.UserId = await AuthService.GetLoggedInUserIdAsync();
     }
 
     private async Task Submit()
@@ -81,44 +56,31 @@
 
         if (form.IsValid)
         {
-            Snackbar.Add("Angebot erfolgreich eingereicht!");
+            Console.WriteLine($"ICH BIN NEU: LongTermFamilyCare: {offerRequest.LongTermFamilyCare}, CrisisIntervention: {offerRequest.CrisisIntervention}, ReliefOffer: {offerRequest.ReliefOffer}");
+
+
+            offerRequest.ZipId = _selectedZip?.Id ?? Guid.Empty;
+
+            try
+            {
+                Console.WriteLine("Sending Offer Request: " + JsonConvert.SerializeObject(offerRequest));
+                await KujiraBackendApi.CreateOffer(offerRequest);
+                Snackbar.Add("Angebot erfolgreich eingereicht!", Severity.Success);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+                Snackbar.Add($"Fehler beim Einreichen des Angebots: {ex.Message}", Severity.Error);
+            }
         }
     }
 
-    /// <summary>
-    ///     A standard AbstractValidator which contains multiple rules and can be shared with the back end API
-    /// </summary>
-    /// <typeparam name="OrderModel"></typeparam>
-    public class OrderModelFluentValidator : AbstractValidator<OrderModel>
+    private async Task GetByCodeWithCantonAndCountry()
     {
-        public OrderModelFluentValidator()
+        if (zips == null || !zips.Any())
         {
-            RuleFor(x => x.Name).NotEmpty().Length(1, 100);
-
-            RuleFor(x => x.Email).Cascade(CascadeMode.Stop).NotEmpty().EmailAddress().MustAsync(async (value, cancellationToken) => await IsUniqueAsync(value));
-
-            RuleFor(x => x.Address.Address).NotEmpty().Length(1, 100);
-
-            RuleFor(x => x.Address.City).NotEmpty().Length(1, 100);
-
-            RuleFor(x => x.Address.Country).NotEmpty().Length(1, 100);
-
+            var zipResponses = await KujiraBackendApi.GetZips();
+            zips = zipResponses.Select(c => new ZipRequest(c.Id, c.Code, c.City, c.CantonId, c.Canton, c.CountryId, c.Country)).ToList();
         }
-
-        private async Task<bool> IsUniqueAsync(string email)
-        {
-    // Simulates a long running http call
-            await Task.Delay(2000);
-            return email.ToLower() != "test@test.com";
-        }
-
-        public Func<object, string, Task<IEnumerable<string>>> ValidateValue => async (model, propertyName) =>
-        {
-            var result = await ValidateAsync(ValidationContext<OrderModel>.CreateWithOptions((OrderModel) model, x => x.IncludeProperties(propertyName)));
-            if (result.IsValid)
-                return Array.Empty<string>();
-            return result.Errors.Select(e => e.ErrorMessage);
-        };
     }
-
 }

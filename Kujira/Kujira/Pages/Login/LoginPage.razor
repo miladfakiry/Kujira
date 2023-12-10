@@ -1,0 +1,60 @@
+﻿@page "/loginPage"
+@using MudBlazor
+@using Kujira.Api
+@using Kujira.Gui.Api.Requests
+@inject IJSRuntime JSRuntime
+@inject ISnackbar Snackbar
+@inject IKujiraBackendApi KujiraBackendApi
+@inject NavigationManager NavigationManager
+
+<MudGrid Justify="Justify.Center">
+    <MudItem xs="12" sm="6" md="4">
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.h6" Class="mb-2">Login</MudText>
+
+            <MudForm @ref="form">
+                <MudTextField Label="E-Mail-Adresse" @bind-Value="@loginRequest.Email" Required="true" RequiredError="E-Mail-Adresse ist erforderlich!" />
+                <MudTextField Label="Passwort" @bind-Value="@loginRequest.Password" InputType="InputType.Password" Required="true" RequiredError="Passwort ist erforderlich!" />
+
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4" OnClick="@Login">Einloggen</MudButton>
+            </MudForm>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private LoginRequest loginRequest = new LoginRequest();
+    private MudForm form;
+
+    private async Task Login()
+    {
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            try
+            {
+                var response = await KujiraBackendApi.Login(loginRequest);
+
+                if (!string.IsNullOrEmpty(response.Token))
+                {
+                    await JSRuntime.InvokeVoidAsync("sessionStorage.setItem", "authToken", response.Token);
+
+                    var abgerufenesToken = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
+                    Console.WriteLine($"Abgerufenes Token: {abgerufenesToken}");
+
+                    NavigationManager.NavigateTo("/dashboard", forceLoad: true);
+                }
+                else
+                {
+                    Snackbar.Add("Login fehlgeschlagen. Bitte überprüfen Sie Ihre E-Mail und Ihr Passwort.", Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Ein Fehler ist aufgetreten: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+}

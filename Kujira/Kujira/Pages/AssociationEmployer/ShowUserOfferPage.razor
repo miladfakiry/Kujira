@@ -1,0 +1,231 @@
+﻿@page "/showUserOffer"
+@using Kujira.Api.Requests
+@using Kujira.Gui.Services
+@using MudBlazor
+@using Kujira.Api
+@inject IKujiraBackendApi KujiraBackendApi
+@inject IDialogService DialogService
+@inject AuthenticationService AuthService
+@inject ISnackbar Snackbar
+
+<div class="d-flex justify-space-between align-items-center my-2">
+    <h1>Meine Angebote</h1>
+</div>
+
+<MudDataGrid Items="@_offers"
+             Hover="@_hover"
+             Filterable="false"
+             SortMode="@SortMode.Multiple"
+             Groupable="false"
+             ReadOnly="@_readOnly"
+             StartedEditingItem="@startedEditingCallback"
+             CanceledEditingItem="@canceledEditingCallback"
+             CommittedItemChanges="@committedChangesCallback"
+             Bordered="false"
+             Dense="false">
+    <Columns>
+        <PropertyColumn Property="x => x.Id" Title="Id" Filterable="false"/>
+        <PropertyColumn Property="x => x.AvailablePlaces" Title="Verfügbare Plätze"/>
+        <TemplateColumn T="OfferRequest" Title="Langzeitpflege">
+            <CellTemplate>
+                <MudCheckBox Checked="@context.Item.LongTermFamilyCare" Disabled/>
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn T="OfferRequest" Title="Krisenintervention">
+            <CellTemplate>
+                <MudCheckBox Checked="@context.Item.CrisisIntervention" Disabled/>
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn T="OfferRequest" Title="Entlastungsangebot">
+            <CellTemplate>
+                <MudCheckBox Checked="@context.Item.ReliefOffer" Disabled/>
+            </CellTemplate>
+        </TemplateColumn>
+        <PropertyColumn Property="x => x.CurrentlyPlacedFosterChildren" Title="Aktuelle Pflegekinder"/>
+        <PropertyColumn Property="x => x.BiologicalChildren" Title="Biologische Kinder">
+            <FilterTemplate>
+                <MudIconButton OnClick="@OpenFilter" Icon="@_icon" Size="@Size.Small"/>
+                <MudOverlay Visible="@_filterOpen" OnClick="@(() => _filterOpen = false)"/>
+                <MudPopover Open="@_filterOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter"
+                            Style="width:150px">
+                    <MudStack Spacing="0">
+                        <MudStack Row="true">
+                            <MudButton OnClick="@(() => ClearFilterAsync(context))">Clear</MudButton>
+                            <MudButton Color="@Color.Primary" OnClick="@(() => ApplyFilterAsync(context))">Filter</MudButton>
+                        </MudStack>
+                    </MudStack>
+                </MudPopover>
+            </FilterTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.AdditionalNote" Title="Zusätzliche Informationen"/>
+
+        <TemplateColumn Hidden="@_isCellEditMode">
+            <CellTemplate>
+                <MudIconButton Color="Color.Primary" Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => StartedEditingItem(context.Item))"/>
+                <MudIconButton Color="Color.Error" Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => DeleteOffer(context.Item))"/>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+
+    <PagerContent>
+        <MudDataGridPager T="OfferRequest"/>
+    </PagerContent>
+
+</MudDataGrid>
+
+@code {
+    private IEnumerable<OfferRequest> _offers = new List<OfferRequest>();
+    private bool _readOnly;
+    private bool _hover;
+
+    private bool _isIdReadOnly = true;
+    private bool isEditing;
+
+    HashSet<OfferRequest> _selectedItems = new();
+    HashSet<OfferRequest> _filterItems = new();
+    FilterDefinition<OfferRequest> _filterDefinition;
+
+    private EventCallback<OfferRequest> startedEditingCallback;
+    private EventCallback<OfferRequest> canceledEditingCallback;
+    private EventCallback<OfferRequest> committedChangesCallback;
+
+    private bool _isCellEditMode;
+    bool _selectAll = true;
+    string _icon = Icons.Material.Outlined.FilterAlt;
+    bool _filterOpen;
+
+    protected override async Task OnInitializedAsync()
+    {
+        startedEditingCallback = EventCallback.Factory.Create<OfferRequest>(this, StartedEditingItem);
+        canceledEditingCallback = EventCallback.Factory.Create<OfferRequest>(this, CanceledEditingItem);
+        committedChangesCallback = EventCallback.Factory.Create<OfferRequest>(this, CommittedItemChanges);
+
+        try
+        {
+            var userId = await AuthService.GetLoggedInUserIdAsync();
+            _offers = await KujiraBackendApi.GetOfferByUserId(userId);
+
+            foreach (var offer in _offers)
+            {
+                Console.WriteLine($"Offer ID: {offer.Id}, LongTermFamilyCare: {offer.LongTermFamilyCare}, CrisisIntervention: {offer.CrisisIntervention}, ReliefOffer: {offer.ReliefOffer}");
+            }
+
+            StateHasChanged();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Fehler beim Laden der Angebote: {e.Message}");
+        }
+    }
+
+
+    private async Task LoadOffersAsync(Guid userId)
+    {
+        try
+        {
+            _offers = await KujiraBackendApi.GetOfferByUserId(userId);
+            StateHasChanged();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Es ist ein Problem beim Laden der Angebote aufgetreten: {e}");
+        }
+    }
+
+    void OpenFilter()
+    {
+        _filterOpen = true;
+    }
+
+    private async Task ClearFilterAsync(FilterContext<OfferRequest> context)
+    {
+        _selectedItems = _offers.ToHashSet();
+        _filterItems = _offers.ToHashSet();
+        _icon = Icons.Material.Outlined.FilterAlt;
+        await context.Actions.ClearFilterAsync(_filterDefinition);
+        _filterOpen = false;
+    }
+
+    private async Task ApplyFilterAsync(FilterContext<OfferRequest> context)
+    {
+        _filterItems = _selectedItems.ToHashSet();
+        _icon = _filterItems.Count == _offers.Count() ? Icons.Material.Outlined.FilterAlt : Icons.Material.Filled.FilterAlt;
+        await context.Actions.ApplyFilterAsync(_filterDefinition);
+        _filterOpen = false;
+    }
+
+    private async Task StartedEditingItem(OfferRequest offer)
+    {
+        try
+        {
+            var offerToEdit = await KujiraBackendApi.GetOfferById(offer.Id);
+            if (offerToEdit == null)
+            {
+                Console.WriteLine("Kein Angebot gefunden!");
+                return;
+            }
+
+            var options = new DialogOptions
+            {
+                MaxWidth = MaxWidth.ExtraSmall,
+                FullWidth = true
+            };
+            var parameters = new DialogParameters
+            {
+                ["offer"] = offerToEdit
+            };
+            var dialog = DialogService.Show<EditOfferDialog>("Angebot bearbeiten", parameters, options);
+            var result = await dialog.Result;
+
+            if (!result.Cancelled)
+            {
+                Console.WriteLine("Angebot erfolgreich bearbeitet.");
+                await LoadOffersAsync(offer.UserId);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Fehler beim Bearbeiten der Firma: " + ex.Message);
+        }
+    }
+
+    private async Task CanceledEditingItem(OfferRequest item)
+    {
+    }
+
+    private async Task CommittedItemChanges(OfferRequest item)
+    {
+        try
+        {
+            await KujiraBackendApi.UpdateOffer(item.Id, item);
+            Console.WriteLine("Erfolgreich geändert!");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Fehler beim Aktualisieren des Angebotes: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteOffer(OfferRequest offer)
+    {
+        var confirmation = await DialogService.ShowMessageBox("Bestätigen", "Möchten Sie dieses Angebot wirklich löschen?", "Löschen", cancelText: "Abbrechen");
+        if (confirmation != true)
+        {
+            // Abbruch der Aktion, da der Benutzer nicht bestätigt hat
+            return;
+        }
+
+        try
+        {
+            await KujiraBackendApi.DeleteOffer(offer.Id);
+            await LoadOffersAsync(await AuthService.GetLoggedInUserIdAsync());
+            Snackbar.Add("Angebot erfolgreich gelöscht", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Fehler beim Löschen des Angebotes: {ex.Message}");
+            throw;
+        }
+    }
+
+}

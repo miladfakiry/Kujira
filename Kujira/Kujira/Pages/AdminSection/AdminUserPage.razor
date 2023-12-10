@@ -198,7 +198,6 @@
         {
             Console.WriteLine("Bearbeitung von Benutzer mit ID: " + item.Id + " startet.");
 
-            // Lade Benutzerdaten
             var userToEdit = await KujiraBackendApi.GetUser(item.Id);
             if (userToEdit == null)
             {
@@ -206,7 +205,6 @@
                 return;
             }
 
-            // Öffne den Bearbeitungsdialog
             var options = new DialogOptions
             {
                 MaxWidth = MaxWidth.ExtraSmall,
@@ -223,7 +221,7 @@
             if (!result.Cancelled)
             {
                 Console.WriteLine("Benutzer erfolgreich bearbeitet.");
-                await LoadUsersAsync(); // Aktualisiert die Benutzerliste
+                await LoadUsersAsync();
             }
         }
         catch (Exception ex)

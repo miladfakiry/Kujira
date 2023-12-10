@@ -1,6 +1,4 @@
-﻿using Kujira.Gui.Api.Requests;
-
-namespace Kujira.Api.Requests;
+﻿namespace Kujira.Api.Requests;
 
 public class UserRequest
 {
@@ -15,4 +13,9 @@ public class UserRequest
     public bool IsInactive { get; set; }
     public DateTime CreateDate { get; set; }
     public Guid CompanyId { get; set; }
+
+    public Guid RoleId { get; set; }
+
+    public string Email { get; set; }
+    public string Password { get; set; }
 }

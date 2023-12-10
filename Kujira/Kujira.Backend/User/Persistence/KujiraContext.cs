@@ -20,6 +20,9 @@ public class KujiraContext : DbContext
     public virtual DbSet<CompanyType> CompanyTypes { get; set; }
     public virtual DbSet<Offer.Domain.Offer> Offers { get; set; }
     public virtual DbSet<Request.Domain.Request> Requests { get; set; }
+    public virtual DbSet<Role> Roles { get; set; }
+    public virtual DbSet<UserRole> UserRoles { get; set; }
+    public virtual DbSet<Login> Logins { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -68,6 +71,26 @@ public class KujiraContext : DbContext
 
         });
 
+        modelBuilder.Entity<Role>(roleEntity =>
+        {
+            roleEntity.ToTable("Roles", "public");
+            roleEntity.HasKey(ro => ro.Id).HasName("PK_RoleID");
+            roleEntity.Property(ro => ro.Id).HasColumnName("RoleID").HasColumnType("uuid").IsRequired().HasDefaultValueSql("gen_random_uuid()");
+            roleEntity.Property(ro => ro.Name).HasColumnName("RolName").HasColumnType("character varying").HasMaxLength(255);
+        });
+
+        modelBuilder.Entity<UserRole>(entity =>
+        {
+            entity.HasKey(ur => new { ur.UserId, ur.RoleId });
+
+            entity.HasOne(ur => ur.User)
+                  .WithMany(u => u.UserRoles)
+                  .HasForeignKey(ur => ur.UserId);
+
+            entity.HasOne(ur => ur.Role)
+                  .WithMany(r => r.UserRoles)
+                  .HasForeignKey(ur => ur.RoleId);
+        });
 
         modelBuilder.Entity<Offer.Domain.Offer>(offerEntity =>
         {
@@ -82,7 +105,7 @@ public class KujiraContext : DbContext
             offerEntity.Property(o => o.BiologicalChildren).HasColumnName("OffBiologicalChildren");
             offerEntity.Property(o => o.AdditionalNote).HasColumnName("OffAdditionalNote").HasColumnType("text");
             offerEntity.Property(o => o.IsInactive).HasColumnName("OffIsInactive");
-            offerEntity.Property(o => o.CreatedAt).HasColumnName("OffCreatedAt").HasColumnType("timestamp without time zone");
+            offerEntity.Property(o => o.CreatedAt).HasColumnName("OffCreatedAt").HasColumnType("timestamp with time zone").HasDefaultValueSql("NOW()");
             offerEntity.Property(o => o.ZipId).HasColumnName("OffZipID_FK");
 
             offerEntity.HasOne(o => o.Zip).WithMany().HasForeignKey(o => o.ZipId).OnDelete(DeleteBehavior.Restrict);
@@ -103,7 +126,7 @@ public class KujiraContext : DbContext
             requestEntity.Property(r => r.BiologicalChildren).HasColumnName("ReqBiologicalChildren");
             requestEntity.Property(r => r.AdditionalNote).HasColumnName("ReqAdditionalNote").HasColumnType("text");
             requestEntity.Property(r => r.IsInactive).HasColumnName("ReqIsInactive");
-            requestEntity.Property(r => r.CreatedAt).HasColumnName("ReqCreatedAt").HasColumnType("timestamp without time zone");
+            requestEntity.Property(r => r.CreatedAt).HasColumnName("ReqCreatedAt").HasColumnType("timestamp with time zone").HasDefaultValueSql("NOW()");
             requestEntity.Property(r => r.ZipId).HasColumnName("ReqZipID_FK");
 
             requestEntity.HasOne(o => o.Zip).WithMany().HasForeignKey(o => o.ZipId).OnDelete(DeleteBehavior.Restrict);

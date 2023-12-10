@@ -47,22 +47,21 @@ public class CompanyProfile : Profile
 
     private Address CreateOrUpdateAddress(CompanyDto src, Company dest)
     {
-        // Logik für das Erstellen oder Aktualisieren der Adresse
+        
         if (src.AddressId == Guid.Empty)
         {
-            // Erstellung einer neuen Adresse
-            var newZip = new Zip(Guid.NewGuid(), src.ZipCode, src.City, Guid.NewGuid()); // Annahme: Neue Zip-Instanz
+          
+            var newZip = new Zip(Guid.NewGuid(), src.ZipCode, src.City, Guid.NewGuid());
             var newAddress = new Address(Guid.NewGuid(), src.Street, src.StreetNumber, newZip);
             return newAddress;
         }
         else
         {
-            // Aktualisierung einer bestehenden Adresse
+           
             if (dest.Address != null)
             {
                 dest.Address.Street = src.Street;
                 dest.Address.StreetNumber = src.StreetNumber;
-                // Aktualisieren Sie weitere Eigenschaften der Adresse, falls erforderlich
             }
             return dest.Address;
         }

@@ -6,7 +6,7 @@ namespace Kujira.Backend.Offer.Domain;
 public class Offer : DbItem
 {
     public Offer(Guid id, int availablePlaces, bool longTermFamilyCare, bool crisisIntervention, bool reliefOffer, int currentlyPlacedFosterChildren, int biologicalChildren, string additionalNote,
-        bool isInactive, DateTime createdAt, Zip zip, User.Domain.User user) : base(id)
+        bool isInactive, Zip zip, User.Domain.User user) : base(id)
     {
         Id = id;
         AvailablePlaces = availablePlaces;
@@ -17,7 +17,6 @@ public class Offer : DbItem
         BiologicalChildren = biologicalChildren;
         AdditionalNote = additionalNote;
         IsInactive = isInactive;
-        CreatedAt = createdAt;
         Zip = zip;
         ZipId = zip.Id;
         User = user;
@@ -25,9 +24,9 @@ public class Offer : DbItem
     }
 
     public Offer(Guid id, int availablePlaces, bool longTermFamilyCare, bool crisisIntervention, bool reliefOffer, int currentlyPlacedFosterChildren, int biologicalChildren, string additionalNote,
-        bool isInactive, DateTime createdAt, Guid zipId, Guid userId) : base(id)
+        bool isInactive, Guid zipId, Guid userId) : base(id)
     {
-        Id = id;
+        Id = id == Guid.Empty ? Guid.NewGuid() : id;
         AvailablePlaces = availablePlaces;
         LongTermFamilyCare = longTermFamilyCare;
         CrisisIntervention = crisisIntervention;
@@ -36,10 +35,11 @@ public class Offer : DbItem
         BiologicalChildren = biologicalChildren;
         AdditionalNote = additionalNote;
         IsInactive = isInactive;
-        CreatedAt = createdAt;
+        CreatedAt = DateTime.UtcNow;
         ZipId = zipId;
         UserId = userId;
     }
+
 
     public Guid Id { get; set; }
     public int AvailablePlaces { get; set; }
@@ -53,7 +53,9 @@ public class Offer : DbItem
     public DateTime CreatedAt { get; set; }
     public Zip Zip { get; set; }
     public Guid ZipId { get; set; }
+  
 
     public User.Domain.User User { get; set; }
     public Guid UserId { get; set; }
+
 }

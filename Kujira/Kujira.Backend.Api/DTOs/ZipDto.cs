@@ -19,6 +19,9 @@ namespace Kujira.Api.DTOs
         [JsonPropertyName("canton")]
         [JsonProperty("canton")]
         public string Canton { get; set; }
+        [JsonPropertyName("cantonId")]
+        [JsonProperty("cantonId")]
+        public Guid CantonId { get; set; }
 
         [JsonPropertyName("country")]
         [JsonProperty("country")]

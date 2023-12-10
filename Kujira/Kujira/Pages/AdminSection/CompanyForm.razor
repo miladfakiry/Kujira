@@ -1,6 +1,4 @@
-﻿@using System.ComponentModel.DataAnnotations
-@using Kujira.Api
-@using Kujira.Api.Requests
+﻿@using Kujira.Api
 @using Kujira.Gui.Api.Requests
 @using MudBlazor
 @inject IKujiraBackendApi KujiraBackendApi
@@ -60,6 +58,7 @@
     private CompanyTypeRequest selectedCompanyType;
     private CountryRequest selectedCountry;
     private ZipRequest _selectedZip;
+    
     private ZipRequest selectedZip
     {
         get => _selectedZip;
@@ -68,10 +67,9 @@
             if (value != null)
             {
                 _selectedZip = value;
-    // Setzen Sie sowohl die IDs als auch die Anzeigenamen
                 companyFormModel.ZipCity = value.City;
-                companyFormModel.CantonName = value.Canton; // Name des Kantons
-                companyFormModel.CountryName = value.Country; // Name des Landes
+                companyFormModel.CantonName = value.Canton;
+                companyFormModel.CountryName = value.Country;
             }
         }
     }
@@ -95,15 +93,6 @@
             countries = countryResponses.Select(c => new CountryRequest(c.Id, c.Name)).ToList();
         }
     }
-
-    // private async Task LoadZipsAndCities()
-    // {
-    //     if (zips == null || !zips.Any())
-    //     {
-    //         var zipResponses = await KujiraBackendApi.GetZips();
-    //         zips = zipResponses.Select(c => new ZipRequest(c.Id, c.Code, c.City, c.Canton, c.Country)).ToList();
-    //     }
-    // }
 
     private async Task GetByCodeWithCantonAndCountry()
     {

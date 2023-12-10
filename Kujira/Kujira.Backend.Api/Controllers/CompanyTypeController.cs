@@ -18,7 +18,6 @@ public class CompanyTypeController : ControllerBase
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
-    // GET: api/CompanyType
     [HttpGet]
     public ActionResult<IEnumerable<CompanyTypeDto>> GetCompanyTypes()
     {
@@ -27,7 +26,6 @@ public class CompanyTypeController : ControllerBase
         return Ok(companyTypeDtos);
     }
 
-    // GET: api/CompanyType/{id}
     [HttpGet("{id}")]
     public async Task<ActionResult<CompanyTypeDto>> GetCompanyType(Guid id)
     {
@@ -41,7 +39,6 @@ public class CompanyTypeController : ControllerBase
         return Ok(companyTypeDto);
     }
 
-    // POST: api/CompanyType
     [HttpPost]
     public async Task<ActionResult<CompanyTypeDto>> CreateCompanyType(CompanyTypeDto companyTypeDto)
     {
@@ -53,7 +50,6 @@ public class CompanyTypeController : ControllerBase
         }, companyTypeDto);
     }
 
-    // PUT: api/CompanyType/{id}
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateCompanyType(Guid id, CompanyTypeDto companyTypeDto)
     {
@@ -73,7 +69,6 @@ public class CompanyTypeController : ControllerBase
         return NoContent();
     }
 
-    // DELETE: api/CompanyType/{id}
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteCompanyType(Guid id)
     {

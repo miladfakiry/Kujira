@@ -20,7 +20,6 @@ public class CountryController : ControllerBase
     }
 
 
-    // GET: api/CompanyType
     [HttpGet]
     public ActionResult<IEnumerable<CountryDto>> GetCountries()
     {

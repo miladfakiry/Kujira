@@ -1,35 +1,46 @@
 ﻿@page "/searchPage"
+@using Kujira.Api.Requests
 @using MudBlazor
-@using System.Reflection
+@using Kujira.Api
+@using Newtonsoft.Json
 @inject HttpClient HttpClient
 @inject IJSRuntime JsRuntime
+@inject IKujiraBackendApi KujiraBackendApi
 
 <PageTitle>Nach Plätzen suchen</PageTitle>
 
 <h1>Platzsuche</h1>
 
 
-@*<MudDataGrid T="Element" Items="@Elements" Filterable="true" FilterMode="@DataGridFilterMode.ColumnFilterRow">*@
-<MudDataGrid Items="@elements" Filterable="false" SortMode="@SortMode.None" Groupable="false" EditMode="@DataGridEditMode.Cell">
+<MudDataGrid Items="@_offers" ReadOnly="@_isReadOnly" Hover="@_hover" Filterable="false" SortMode="@SortMode.Multiple" Groupable="false" EditMode="@DataGridEditMode.Cell">
     <Columns>
-        <HierarchyColumn T="Element"></HierarchyColumn>
+        <HierarchyColumn T="OfferRequest"/>
         <PropertyColumn Property="x => x.Id" Title="Id" Filterable="false"/>
-        <PropertyColumn Property="x => x.Association" Title="Verband"/>
-        <PropertyColumn Property="x => x.AvailablePlaces" Title="Freie Plätze" Filterable="true">
+        <PropertyColumn Property="x => x.AvailablePlaces" Title="Verfügbare Plätze"/>
+        <PropertyColumn Property="x => x.City" Title="Ort"/>
+        <TemplateColumn T="OfferRequest" Title="Langzeitpflege">
+            <CellTemplate>
+                <MudCheckBox Checked="@context.Item.LongTermFamilyCare" Disabled/>
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn T="OfferRequest" Title="Krisenintervention">
+            <CellTemplate>
+                <MudCheckBox Checked="@context.Item.CrisisIntervention" Disabled/>
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn T="OfferRequest" Title="Entlastungsangebot">
+            <CellTemplate>
+                <MudCheckBox Checked="@context.Item.ReliefOffer" Disabled/>
+            </CellTemplate>
+        </TemplateColumn>
+        <PropertyColumn Property="x => x.CurrentlyPlacedFosterChildren" Title="Aktuelle Pflegekinder"/>
+        <PropertyColumn Property="x => x.BiologicalChildren" Title="Biologische Kinder">
             <FilterTemplate>
                 <MudIconButton OnClick="@OpenFilter" Icon="@_icon" Size="@Size.Small"/>
                 <MudOverlay Visible="@_filterOpen" OnClick="@(() => _filterOpen = false)"/>
                 <MudPopover Open="@_filterOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter"
                             Style="width:150px">
                     <MudStack Spacing="0">
-                        @*<MudCheckBox T="bool" Label="Select All" Size="@Size.Small" Checked="@_selectAll" CheckedChanged="@SelectAll" />
-                        <MudStack Spacing="0" Style="overflow-y:auto;max-height:250px">
-                            @foreach (var item in context.Items)
-                            {
-                                <MudCheckBox T="bool" Label="@($"{item.Sign}")" Size="@Size.Small" Checked="@(_selectedItems.Contains(item))"
-                                         CheckedChanged="@((value) => SelectedChanged(value, item))" />
-                            }
-                        </MudStack>*@
                         <MudStack Row="true">
                             <MudButton OnClick="@(() => ClearFilterAsync(context))">Clear</MudButton>
                             <MudButton Color="@Color.Primary" OnClick="@(() => ApplyFilterAsync(context))">Filter</MudButton>
@@ -38,32 +49,29 @@
                 </MudPopover>
             </FilterTemplate>
         </PropertyColumn>
-
-        <PropertyColumn Property="x => x.LongTermFamilyCare" Title="Langfr. Familienpflege" Filterable="true"/>
-        <PropertyColumn Property="x => x.CrisisIntervention" Title="Krisenintervention" Filterable="true"/>
-        <PropertyColumn Property="x => x.ReliefOffer" Title="Entlastungsangebot" Filterable="true"/>
-        <PropertyColumn Property="x => x.Residence" Title="Wohnort" Filterable="true"/>
-        <PropertyColumn Property="x => x.CurrentlyPlacedFosterChildren" Title="Akt. platz. Pflegekinder" Filterable="true"/>
-        <PropertyColumn Property="x => x.BiologicalChildren" Title="Leib. Kinder" Filterable="true"/>
+        <PropertyColumn Property="x => x.AdditionalNote" Title="Zusätzliche Informationen"/>
     </Columns>
-    <ChildRowContent>
-        <MudCard>
+     <ChildRowContent>
+         <MudCard>
             <MudCardHeader>
                 <CardHeaderContent>
-                    <MudText Typo="Typo.h5">@context.Item.Association</MudText>
+                    <MudText Typo="Typo.h5">@context.Item.CompanyName</MudText>
                 </CardHeaderContent>
             </MudCardHeader>
             <MudCardContent>
                 <MudText Typo="Typo.h6">Kontaktdaten:</MudText>
-                <MudText><a href="tel:@context.Item.PhoneNumber">@context.Item.PhoneNumber</a></MudText>
-                <MudText><a href="mailto:@context.Item.EMailAddress">@context.Item.EMailAddress</a></MudText>
+                <MudText>
+                    <a href="tel:@context.Item.PhoneNumber">@context.Item.PhoneNumber</a>
+                </MudText>
+                <MudText>
+                    <a href="mailto:@context.Item.EMailAddress">@context.Item.EMailAddress</a>
+                </MudText>
                 <div style="width: 100%; height: 200px; margin-top: 20px;">
-                    <iframe 
-                        width="100%" 
-                        height="100%" 
-                        frameborder="0" 
-                        style="border:0"
-                            src="https://www.google.com/maps/embed/v1/search?q=@context.Item.Residence&key=AIzaSyBXuXp8Lhv83I8uDc7HILgaGuaMxhvBPpQ"
+                    <iframe width="100%"
+                            height="100%"
+                            frameborder="0"
+                            style="border:0"
+                            src="https://www.google.com/maps/embed/v1/search?q=@context.Item.ZipCode&key=AIzaSyBXuXp8Lhv83I8uDc7HILgaGuaMxhvBPpQ"
                             allowfullscreen>
                     </iframe>
                 </div>
@@ -74,39 +82,36 @@
         </MudCard>
     </ChildRowContent>
     <PagerContent>
-        <MudDataGridPager T="Element"/>
+        <MudDataGridPager T="OfferRequest" />
     </PagerContent>
 </MudDataGrid>
 
 @code {
-    IEnumerable<Element> Elements = new List<Element>();
-    HashSet<Element> _selectedItems = new();
-    HashSet<Element> _filterItems = new();
-    FilterDefinition<Element> _filterDefinition;
+    private IEnumerable<OfferRequest> _offers = new List<OfferRequest>();
+    private bool _hover = true;
+    private bool _isReadOnly = true;
+    HashSet<OfferRequest> _selectedItems = new();
+    HashSet<OfferRequest> _filterItems = new();
+    FilterDefinition<OfferRequest> _filterDefinition;
     bool _selectAll = true;
     string _icon = Icons.Material.Outlined.FilterAlt;
 
     bool _filterOpen;
 
-    public record Element(int Id, string Association, int AvailablePlaces, bool LongTermFamilyCare, string PhoneNumber, string EMailAddress, bool CrisisIntervention, bool ReliefOffer, string Residence, int CurrentlyPlacedFosterChildren, int BiologicalChildren);
 
-    public IEnumerable<Element> elements;
-
-
-    protected override void OnInitialized()
+    protected override async void OnInitialized()
     {
-        //Elements = await httpClient.GetFromJsonAsync<List<Element>>("webapi/periodictable");
-        //_selectedItems = Elements.ToHashSet();
-        //_filterItems = Elements.ToHashSet();
-        //_filterDefinition = new FilterDefinition<Element>
-        //{
-        //    FilterFunction = x => _filterItems.Contains(x)
-        //};
-
-        elements = new List<Element>
+        try
         {
-            new(1, "St.Galler Kindi", 2, true, "+41781234567", "test@gmail.com", false, false, "Gossau", 2, 1)
-        };
+            _offers = await KujiraBackendApi.GetOffers();
+            Console.WriteLine("API response received: " + JsonConvert.SerializeObject(_offers));
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error fetching offers: " + ex.ToString());
+            throw;
+        }
     }
 
     void OpenFilter()
@@ -114,32 +119,32 @@
         _filterOpen = true;
     }
 
-    private void SelectedChanged(bool value, Element item)
+    private void SelectedChanged(bool value, OfferRequest item)
     {
         if (value)
             _selectedItems.Add(item);
         else
             _selectedItems.Remove(item);
 
-        if (_selectedItems.Count == Elements.Count())
+        if (_selectedItems.Count == _offers.Count())
             _selectAll = true;
         else
             _selectAll = false;
     }
 
-    private async Task ClearFilterAsync(FilterContext<Element> context)
+    private async Task ClearFilterAsync(FilterContext<OfferRequest> context)
     {
-        _selectedItems = Elements.ToHashSet();
-        _filterItems = Elements.ToHashSet();
+        _selectedItems = _offers.ToHashSet();
+        _filterItems = _offers.ToHashSet();
         _icon = Icons.Material.Outlined.FilterAlt;
         await context.Actions.ClearFilterAsync(_filterDefinition);
         _filterOpen = false;
     }
 
-    private async Task ApplyFilterAsync(FilterContext<Element> context)
+    private async Task ApplyFilterAsync(FilterContext<OfferRequest> context)
     {
         _filterItems = _selectedItems.ToHashSet();
-        _icon = _filterItems.Count == Elements.Count() ? Icons.Material.Outlined.FilterAlt : Icons.Material.Filled.FilterAlt;
+        _icon = _filterItems.Count == _offers.Count() ? Icons.Material.Outlined.FilterAlt : Icons.Material.Filled.FilterAlt;
         await context.Actions.ApplyFilterAsync(_filterDefinition);
         _filterOpen = false;
     }
@@ -150,7 +155,7 @@
 
         if (value)
         {
-            _selectedItems = Elements.ToHashSet();
+            _selectedItems = _offers.ToHashSet();
         }
         else
         {

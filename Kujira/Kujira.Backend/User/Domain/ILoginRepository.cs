@@ -4,4 +4,5 @@ namespace Kujira.Backend.User.Domain;
 
 public interface ILoginRepository : IRepositoryBase<Login>
 {
+    Login GetLoginByEmail(string email);
 }

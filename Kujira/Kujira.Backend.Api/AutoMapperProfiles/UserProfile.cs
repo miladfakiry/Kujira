@@ -29,6 +29,7 @@ public class UserProfile : Profile
 
         CreateMap<User, UserDto>()
             .ForMember(dto => dto.DateOfBirth, opt => opt.MapFrom(u => u.PersonalInformation.DateOfBirth))
-            .ForMember(dto => dto.PhoneNumber, opt => opt.MapFrom(u => u.PersonalInformation.PhoneNumber));
+            .ForMember(dto => dto.PhoneNumber, opt => opt.MapFrom(u => u.PersonalInformation.PhoneNumber))
+            .ForMember(dto => dto.RoleId, opt => opt.MapFrom(u => u.UserRoles.FirstOrDefault().RoleId));
     }
 }

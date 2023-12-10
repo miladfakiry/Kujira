@@ -1,0 +1,33 @@
+﻿@using Kujira.Gui.Services
+namespace Kujira.Gui.Shared
+{
+@if (isLoading)
+{
+    <div class="spinner-overlay">
+        <div class="spinner"></div>
+    </div>
+}
+
+@code {
+    private bool isLoading = false;
+
+    [Inject] private LoadingService LoadingService { get; set; }
+
+    protected override void OnInitialized()
+    {
+        LoadingService.OnLoadingChanged += ToggleLoading;
+    }
+
+    private void ToggleLoading(bool isLoading)
+    {
+        this.isLoading = isLoading;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        LoadingService.OnLoadingChanged -= ToggleLoading;
+    }
+}
+
+}
