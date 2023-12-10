@@ -21,25 +21,31 @@
             <MudTextField @bind-Value="offerRequest.CurrentlyPlacedFosterChildren" Label="Aktuell platzierte Pflegekinder" For="() => offerRequest.CurrentlyPlacedFosterChildren"/>
             <MudTextField @bind-Value="offerRequest.BiologicalChildren" Label="Biologische Kinder" For="() => offerRequest.BiologicalChildren"/>
             <MudTextField @bind-Value="offerRequest.AdditionalNote" Label="Zusätzliche Informationen" Multiline For="() => offerRequest.AdditionalNote"/>
-
-            <MudSelect T="ZipRequest" Label="PLZ" @bind-Value="@_selectedZip" OnOpen="GetByCodeWithCantonAndCountry">
-                @if (zips != null)
-                {
-                    @foreach (var zip in zips)
-                    {
-                        <MudSelectItem Value="@zip"/>
-                    }
-                }
-            </MudSelect>
+            <MudItem xs="12" sm="6" md="4">
+                <MudAutocomplete T="ZipRequest" Label="PLZ" @bind-Value="@_selectedZip" SearchFunc="@SearchZips" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary">
+                  
+                </MudAutocomplete>
+            </MudItem>
         </MudCardContent>
         <MudCardActions>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Speichern</MudButton>
+            <MudButton Disabled="@_processing" Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">
+                @if (_processing)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                    <MudText Class="ms-2">Lädt</MudText>
+                }
+                else
+                {
+                    <MudText>Speichern</MudText>
+                }
+            </MudButton>
         </MudCardActions>
     </MudForm>
 </MudCard>
 
 @code {
     private readonly OfferRequest offerRequest = new();
+    private bool _processing = false;
     private MudForm form;
     private IEnumerable<ZipRequest> zips;
     private ZipRequest _selectedZip;
@@ -48,10 +54,15 @@
     protected override async Task OnInitializedAsync()
     {
         offerRequest.UserId = await AuthService.GetLoggedInUserIdAsync();
+        var zipResponses = await KujiraBackendApi.GetZips();
+        zips = zipResponses.Select(c => new ZipRequest(c.Id, c.Code, c.City, c.CantonId, c.Canton, c.CountryId, c.Country)).ToList();
     }
 
     private async Task Submit()
     {
+        _processing = true;
+        await Task.Delay(1000);
+        
         await form.Validate();
 
         if (form.IsValid)
@@ -73,6 +84,7 @@
                 Snackbar.Add($"Fehler beim Einreichen des Angebots: {ex.Message}", Severity.Error);
             }
         }
+        _processing = false;
     }
 
     private async Task GetByCodeWithCantonAndCountry()
@@ -83,4 +95,19 @@
             zips = zipResponses.Select(c => new ZipRequest(c.Id, c.Code, c.City, c.CantonId, c.Canton, c.CountryId, c.Country)).ToList();
         }
     }
+
+    private async Task<IEnumerable<ZipRequest>> SearchZips(string value)
+    {
+        await Task.Delay(5);
+
+        if (zips == null || !zips.Any())
+        {
+            return new List<ZipRequest>();
+        }
+
+        var filtered = zips.Where(x => x.Code.Contains(value, StringComparison.InvariantCultureIgnoreCase)).ToList();
+        return filtered;
+    }
+
+
 }

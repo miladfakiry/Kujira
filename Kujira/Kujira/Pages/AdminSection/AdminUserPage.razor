@@ -251,8 +251,10 @@
     private async Task DeleteUser(UserRequest item)
     {
         var confirmation = await DialogService.ShowMessageBox("Bestätigen", "Möchten Sie diesen Benutzer wirklich löschen?", "Löschen", cancelText: "Abbrechen");
-        if ((bool) !confirmation)
+        if (confirmation != true)
+        {
             return;
+        }
 
         try
         {

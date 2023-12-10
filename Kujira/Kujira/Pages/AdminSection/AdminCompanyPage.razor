@@ -247,8 +247,10 @@
     private async Task DeleteCompany(CompanyRequest item)
     {
         var confirmation = await DialogService.ShowMessageBox("Bestätigen", "Möchten Sie diese Firma wirklich löschen?", "Löschen", cancelText: "Abbrechen");
-        if ((bool)!confirmation)
+        if (confirmation != true)
+        {
             return;
+        }
 
         try
         {

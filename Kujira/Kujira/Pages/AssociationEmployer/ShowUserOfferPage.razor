@@ -211,7 +211,6 @@
         var confirmation = await DialogService.ShowMessageBox("Bestätigen", "Möchten Sie dieses Angebot wirklich löschen?", "Löschen", cancelText: "Abbrechen");
         if (confirmation != true)
         {
-            // Abbruch der Aktion, da der Benutzer nicht bestätigt hat
             return;
         }
 
