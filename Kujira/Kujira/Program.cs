@@ -22,7 +22,8 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 // Http Client
 builder.Services.AddTransient(sp => new HttpClient
 {
-    BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
+    //BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
+    BaseAddress = new Uri("https://192.168.1.9:5001") // Die IP-Adresse Ihres API-Servers
 });
 
 // MudBlazor Services
@@ -42,7 +43,8 @@ builder.Services.AddSingleton<LoadingService>();
 // RestEase Service for IKujiraBackendApi
 builder.Services.AddSingleton<IKujiraBackendApi>(provider => RestClient.For<IKujiraBackendApi>(new HttpClient
 {
-    BaseAddress = new Uri("https://localhost:7229")
+    //BaseAddress = new Uri("https://localhost:7229")
+    BaseAddress = new Uri("https://192.168.1.9:5001")
 }));
 
 builder.Services.AddTransient<MudLocalizer, DictionaryMudLocalizer>();

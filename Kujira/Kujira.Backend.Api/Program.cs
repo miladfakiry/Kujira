@@ -12,6 +12,12 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    //serverOptions.ListenAnyIP(5000); // HTTP auf Port 5000
+    serverOptions.ListenAnyIP(5001, listenOptions => listenOptions.UseHttps()); // HTTPS auf Port 5001
+});
+
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddAuthentication(options =>
        {
@@ -58,9 +64,9 @@ builder.Services.AddCors(options => { options.AddDefaultPolicy(builder => { buil
 
 
 var app = builder.Build();
-
+app.UseCors();
 app.UseAuthentication();
-app.UseAuthorization();
+
 
 if (app.Environment.IsDevelopment())
 {
@@ -70,7 +76,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors();
+
 app.UseRouting();
 app.UseAuthorization();
 app.MapControllers();
