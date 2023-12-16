@@ -90,14 +90,16 @@ public class AuthController : ControllerBase
 
     private string GenerateJwtToken(Login login, IEnumerable<UserRole> userRoles)
     {
+       
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
         var claims = new List<Claim>
         {
+
             new Claim(JwtRegisteredClaimNames.Sub, login.Email),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            // Weitere benutzerspezifische Claims hinzufügen
+            new Claim("Name", $"{login.User.FirstName}")
         };
 
         foreach (var role in userRoles)

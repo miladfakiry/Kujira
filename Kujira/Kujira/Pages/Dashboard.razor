@@ -1,9 +1,12 @@
 ﻿@page "/dashboard"
+@inject IJSRuntime JSRuntime
+@using Kujira.Gui.Services
+@inject AuthenticationService AuthService
 @using MudBlazor
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Dashboard</PageTitle>
 
-<h1>Willkommen Milad</h1>
+<h1>Willkommen @username</h1>
 
 <MudGrid>
     <MudItem xs="12">
@@ -28,7 +31,21 @@
         <MudPaper Class="d-flex align-center justify-center mud-width-full py-8">xs=3</MudPaper>
     </MudItem>
 </MudGrid>
-@code{
 
+@code {
+    private string username;
 
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+        if (!string.IsNullOrEmpty(token))
+        {
+            var claimsIdentity = await AuthService.GetClaimsIdentityFromToken(token);
+            var nameClaim = claimsIdentity.FindFirst("Name");
+            if (nameClaim != null)
+            {
+                username = nameClaim.Value;
+            }
+        }
+    }
 }

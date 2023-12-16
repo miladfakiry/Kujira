@@ -12,6 +12,12 @@
     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenCreateCompanyDialog">Firma erfassen</MudButton>
 </div>
 
+@if (!_dataLoaded)
+{
+    <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true" />
+}
+else
+{
 <MudDataGrid Items="@_companies"
              Hover="@_hover"
              Filterable="false"
@@ -65,8 +71,10 @@
     </PagerContent>
 
 </MudDataGrid>
+}
 
 @code {
+    private bool _dataLoaded = false;
     private IEnumerable<CompanyRequest> _companies = new List<CompanyRequest>();
     private CompanyRequest _selectedCompanyDto;
     private Guid _id;
@@ -102,6 +110,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _dataLoaded = false;
         startedEditingCallback = EventCallback.Factory.Create<CompanyRequest>(this, StartedEditingItem);
         canceledEditingCallback = EventCallback.Factory.Create<CompanyRequest>(this, CanceledEditingItem);
         committedChangesCallback = EventCallback.Factory.Create<CompanyRequest>(this, CommittedItemChanges);
@@ -110,10 +119,12 @@
         try
         {
             await LoadCompaniesAsync();
+            _dataLoaded = true;
         }
         catch (Exception e)
         {
             Console.WriteLine($"Es ist ein Problem beim LoadCompaniesAsync aufgetreten, hier ist die Exception:{e}");
+            _dataLoaded = true;
             throw;
         }
     }

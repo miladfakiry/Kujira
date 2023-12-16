@@ -11,7 +11,12 @@
 
 <h1>Platzsuche</h1>
 
-
+@if (!_dataLoaded)
+{
+    <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true" />
+}
+else
+{
 <MudDataGrid Items="@_offers" ReadOnly="@_isReadOnly" Hover="@_hover" Filterable="false" SortMode="@SortMode.Multiple" Groupable="false" EditMode="@DataGridEditMode.Cell">
     <Columns>
         <HierarchyColumn T="OfferRequest"/>
@@ -77,7 +82,8 @@
                 </div>
             </MudCardContent>
             <MudCardActions>
-                <MudButton Variant="Variant.Filled" Size="Size.Small" OnClick="@(() => AskAQuestion())" Color="Color.Info">Anfragen</MudButton>
+                    <MudButton Variant="Variant.Filled" Size="Size.Small" OnClick="@(() => SendRequest(context.Item))" Color="Color.Info">Anfrage senden</MudButton>
+
             </MudCardActions>
         </MudCard>
     </ChildRowContent>
@@ -85,8 +91,9 @@
         <MudDataGridPager T="OfferRequest" />
     </PagerContent>
 </MudDataGrid>
-
+}
 @code {
+    private bool _dataLoaded = false;
     private IEnumerable<OfferRequest> _offers = new List<OfferRequest>();
     private bool _hover = true;
     private bool _isReadOnly = true;
@@ -101,15 +108,18 @@
 
     protected override async void OnInitialized()
     {
+        _dataLoaded = false;
         try
         {
             _offers = await KujiraBackendApi.GetOffers();
             Console.WriteLine("API response received: " + JsonConvert.SerializeObject(_offers));
+            _dataLoaded = true;
             StateHasChanged();
         }
         catch (Exception ex)
         {
             Console.WriteLine("Error fetching offers: " + ex.ToString());
+            _dataLoaded = true;
             throw;
         }
     }
@@ -163,9 +173,12 @@
         }
     }
 
-    private async Task AskAQuestion()
+    private void SendRequest(OfferRequest offer)
     {
-        Console.WriteLine("Nachricht an Verband gesendet!");
-    }
+        var subject = Uri.EscapeDataString($"Anfrage für Platzangebot: {offer.Id}");
+        var body = Uri.EscapeDataString($"Ich interessiere mich für das Angebot mit der ID {offer.Id}.\n\nDetails des Angebotes:\n- Verfügbare Plätze: {offer.AvailablePlaces}\n- Ort: {offer.City}\n- Langzeitpflege: {(offer.LongTermFamilyCare ? "Ja" : "Nein")}\n- Krisenintervention: {(offer.CrisisIntervention ? "Ja" : "Nein")}\n- Entlastungsangebot: {(offer.ReliefOffer ? "Ja" : "Nein")}\n\nBitte senden Sie mir weitere Informationen zu diesem Angebot.");
 
+        var mailtoUrl = $"mailto:{offer.EMailAddress}?subject={subject}&body={body}";
+        JsRuntime.InvokeVoidAsync("open", mailtoUrl);
+    }
 }

@@ -2,6 +2,7 @@
 @using Kujira.Api.Requests
 @using Kujira.Gui.Api.Requests
 @using MudBlazor
+@using System.ComponentModel.DataAnnotations
 @inject IKujiraBackendApi KujiraBackendApi
 @inject ISnackbar Snackbar
 
@@ -29,7 +30,7 @@
                             <MudSelectItem Value="@(new CompanyOption(Guid.Empty, "Keine Firmen verfügbar"))" Disabled />
                         }
                     </MudSelect>
-                    <MudTextField Label="E-Mail-Adresse" @bind-Value="@userFormModel.Email" For="@(() => userFormModel.Email)" />
+                    <MudTextField Label="E-Mail-Adresse" @bind-Value="@userFormModel.Email" For="@(() => userFormModel.Email)" Validation="@(new EmailAddressAttribute() {ErrorMessage = "Die E-Mail Adresse ist nicht gültig"})" Required="true" />
                     <MudTextField Label="Passwort" @bind-Value="@userFormModel.Password" For="@(() => userFormModel.Password)" InputType="InputType.Password" />
                     <MudSelect T="RoleRequest" Label="Role" @bind-Value="selectedRole" OnOpen="@LoadRoles">
                     @if (roles != null)

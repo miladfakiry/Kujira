@@ -1,6 +1,7 @@
 ﻿@using Kujira.Api
 @using Kujira.Gui.Api.Requests
 @using MudBlazor
+@using System.ComponentModel.DataAnnotations
 @inject IKujiraBackendApi KujiraBackendApi
 @inject ISnackbar Snackbar
 
@@ -22,10 +23,10 @@
                             }
                         }
                     </MudSelect>
-                    <MudTextField Label="Firmenname" @bind-Value="@companyFormModel.Name" For="@(() => companyFormModel.Name)"/>
-                    <MudTextField Label="Strasse" @bind-Value="@companyFormModel.AddStreet" For="@(() => companyFormModel.AddStreet)"/>
-                    <MudTextField Label="Nummer" @bind-Value="@companyFormModel.AddStreetNumber" For="@(() => companyFormModel.AddStreetNumber)"/>
-                    <MudSelect T="ZipRequest" Label="PLZ" @bind-Value="@selectedZip" OnOpen="GetByCodeWithCantonAndCountry">
+                    <MudTextField Label="Firmenname" @bind-Value="@companyFormModel.Name" For="@(() => companyFormModel.Name)" Required="true" />
+                    <MudTextField Label="Strasse" @bind-Value="@companyFormModel.AddStreet" For="@(() => companyFormModel.AddStreet)" Required="true" />
+                    <MudTextField Label="Nummer" @bind-Value="@companyFormModel.AddStreetNumber" For="@(() => companyFormModel.AddStreetNumber)" Required="true" />
+                    <MudSelect T="ZipRequest" Label="PLZ" @bind-Value="@selectedZip" Required="true" OnOpen="GetByCodeWithCantonAndCountry">
                         @if (zips != null)
                         {
                             @foreach (var zip in zips)
@@ -34,15 +35,34 @@
                             }
                         }
                     </MudSelect>
-                    <MudTextField Label="Stadt" @bind-Value="@companyFormModel.ZipCity" For="@(() => companyFormModel.ZipCity)" Disabled />
+                    <MudSelect T="ZipRequest" Label="Stadt" @bind-Value="@selectedZip" Required="true" OnOpen="GetByCodeWithCantonAndCountry">
+                        @if (zips != null)
+                        {
+                            @foreach (var cities in zips)
+                            {
+                                <MudSelectItem Value="@cities" />
+                            }
+                        }
+                    </MudSelect>
+                    <MudTextField Label="Ort" @bind-Value="@companyFormModel.ZipCity" For="@(() => companyFormModel.ZipCity)" Required="true" />
                     <MudTextField Label="Kanton" @bind-Value="@companyFormModel.CantonName" Disabled />
                     <MudTextField Label="Land" @bind-Value="@companyFormModel.CountryName" Disabled />
                     <MudTextField Label="Telefonnummer" @bind-Value="@companyFormModel.PhoneNumber" For="@(() => companyFormModel.PhoneNumber)" Required="true"/>
-                    <MudTextField Label="E-Mail" @bind-Value="@companyFormModel.EMailAddress" For="@(() => companyFormModel.EMailAddress)" Required="true"/>
+                     <MudTextField Label="E-Mail" @bind-Value="@companyFormModel.EMailAddress" For="@(() => companyFormModel.EMailAddress)" Validation="@(new EmailAddressAttribute() {ErrorMessage = "Die E-Mail Adresse ist nicht gültig"})" Required="true" />
                     <MudTextField Label="Website" @bind-Value="@companyFormModel.WebsiteAddress" For="@(() => companyFormModel.WebsiteAddress)" Required="false"/>
                 </MudCardContent>
-                <MudCardActions>
-                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Firma erfassen</MudButton>
+                 <MudCardActions>
+                     <MudButton Disabled="@_processing" Variant="Variant.Filled" Color="Color.Primary" OnClick="OnValidSubmit">
+                         @if (_processing)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                            <MudText Class="ms-2">Lädt</MudText>
+                        }
+                        else
+                        {
+                            <MudText>Firma erfassen</MudText>
+                        }
+                    </MudButton>
                 </MudCardActions>
             </MudCard>
         </MudItem>
@@ -50,14 +70,16 @@
 </EditForm>
 
 @code {
-    private CompanyRequest companyFormModel = new CompanyRequest();
+    private bool _processing = false;
 
+    private CompanyRequest companyFormModel = new CompanyRequest();
     private IEnumerable<CompanyTypeRequest> companyTypes;
     private IEnumerable<CountryRequest> countries;
     private IEnumerable<ZipRequest> zips;
     private CompanyTypeRequest selectedCompanyType;
     private CountryRequest selectedCountry;
     private ZipRequest _selectedZip;
+
     
     private ZipRequest selectedZip
     {
@@ -108,6 +130,9 @@
     public EventCallback<bool> OnCompanyCreated { get; set; }
     private async Task OnValidSubmit()
     {
+        _processing = true;
+        await Task.Delay(1000);
+
         try
         {
             companyFormModel.CompanyTypeId = selectedCompanyType.Id;
@@ -124,6 +149,7 @@
             Console.WriteLine($"Fehler beim Erstellen der Company: {ex}");
             Snackbar.Add($"Fehler beim Erfassen der Firma: {ex.Message}", Severity.Error);
         }
+        _processing = false;
     }
 
 }

@@ -1,11 +1,17 @@
 ﻿@page "/loginPage"
+@using Kujira.Gui.Services
 @using MudBlazor
+@using System.ComponentModel.DataAnnotations
 @using Kujira.Api
 @using Kujira.Gui.Api.Requests
+@using Microsoft.AspNetCore.Components.Authorization
+
 @inject IJSRuntime JSRuntime
 @inject ISnackbar Snackbar
 @inject IKujiraBackendApi KujiraBackendApi
 @inject NavigationManager NavigationManager
+@inject AuthenticationService AuthService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <MudGrid Justify="Justify.Center">
     <MudItem xs="12" sm="6" md="4">
@@ -13,10 +19,22 @@
             <MudText Typo="Typo.h6" Class="mb-2">Login</MudText>
 
             <MudForm @ref="form">
-                <MudTextField Label="E-Mail-Adresse" @bind-Value="@loginRequest.Email" Required="true" RequiredError="E-Mail-Adresse ist erforderlich!" />
+                <MudTextField Label="E-Mail-Adresse" @bind-Value="@loginRequest.Email" Required="true" Validation="@(new EmailAddressAttribute() {ErrorMessage = "Die E-Mail Adresse ist nicht gültig"})" RequiredError="E-Mail-Adresse ist erforderlich!" />
                 <MudTextField Label="Passwort" @bind-Value="@loginRequest.Password" InputType="InputType.Password" Required="true" RequiredError="Passwort ist erforderlich!" />
 
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4" OnClick="@Login">Einloggen</MudButton>
+                <MudCardActions>
+                    <MudButton Disabled="@_processing" Variant="Variant.Filled" Color="Color.Primary" OnClick="Login">
+                        @if (_processing)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                            <MudText Class="ms-2">Lädt</MudText>
+                        }
+                        else
+                        {
+                            <MudText>Login</MudText>
+                        }
+                    </MudButton>
+                </MudCardActions>
             </MudForm>
         </MudPaper>
     </MudItem>
@@ -25,9 +43,12 @@
 @code {
     private LoginRequest loginRequest = new LoginRequest();
     private MudForm form;
+    private bool _processing = false;
 
     private async Task Login()
     {
+        _processing = true;
+        await Task.Delay(1000);
         await form.Validate();
 
         if (form.IsValid)
@@ -40,10 +61,13 @@
                 {
                     await JSRuntime.InvokeVoidAsync("sessionStorage.setItem", "authToken", response.Token);
 
-                    var abgerufenesToken = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
+                    var abgerufenesToken = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "authToken");
                     Console.WriteLine($"Abgerufenes Token: {abgerufenesToken}");
 
-                    NavigationManager.NavigateTo("/dashboard", forceLoad: true);
+                    var authStateProvider = (CustomAuthenticationStateProvider)AuthenticationStateProvider;
+                    await authStateProvider.UpdateAuthenticationState();
+
+                    NavigationManager.NavigateTo("/dashboard", forceLoad: false);
                 }
                 else
                 {
@@ -54,7 +78,10 @@
             {
                 Snackbar.Add($"Ein Fehler ist aufgetreten: {ex.Message}", Severity.Error);
             }
+
+
         }
+        _processing = false;
     }
 
 }

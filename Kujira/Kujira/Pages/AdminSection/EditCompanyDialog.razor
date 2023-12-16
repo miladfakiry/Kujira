@@ -1,21 +1,22 @@
 ﻿@using Kujira.Gui.Api.Requests
 @using MudBlazor
 @using Kujira.Api
+@using System.ComponentModel.DataAnnotations
 @inject IKujiraBackendApi KujiraBackendApi
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
 <MudDialog>
     <DialogContent>
-        <MudTextField Label="Firmenname" @bind-Value="@company.Name"/>
-        <MudTextField Label="Strasse" @bind-Value="@company.AddStreet"/>
-        <MudTextField Label="Nummer" @bind-Value="@company.AddStreetNumber"/>
-        <MudTextField Label="PLZ" @bind-Value="@company.ZipCode"/>
-        <MudTextField Label="Stadt" @bind-Value="@company.ZipCity"/>
-        <MudTextField Label="Kanton" @bind-Value="@company.CantonName"/>
-        <MudTextField Label="Land" @bind-Value="@company.CountryName"/>
-        <MudTextField Label="Telefonnummer" @bind-Value="@company.PhoneNumber"/>
-        <MudTextField Label="E-Mail" @bind-Value="@company.EMailAddress"/>
+        <MudTextField Label="Firmenname" @bind-Value="@company.Name" Required="true" />
+        <MudTextField Label="Strasse" @bind-Value="@company.AddStreet" Required="true" />
+        <MudTextField Label="Nummer" @bind-Value="@company.AddStreetNumber" Required="true" />
+        <MudTextField Label="PLZ" @bind-Value="@company.ZipCode" Required="true" />
+        <MudTextField Label="Stadt" @bind-Value="@company.ZipCity" Required="true" />
+        <MudTextField Label="Kanton" @bind-Value="@company.CantonName" Required="true" />
+        <MudTextField Label="Land" @bind-Value="@company.CountryName" Required="true" />
+        <MudTextField Label="Telefonnummer" @bind-Value="@company.PhoneNumber" Required="true" />
+        <MudTextField Label="E-Mail" @bind-Value="@company.EMailAddress" Validation="@(new EmailAddressAttribute() {ErrorMessage = "Die E-Mail Adresse ist nicht gültig"})" Required="true"/>
         <MudTextField Label="Website" @bind-Value="@company.WebsiteAddress"/>
 
         <MudSelect T="CompanyTypeRequest" Label="Firmentyp" @bind-Value="@selectedCompanyType" OnOpen="@LoadCompanyTypes">

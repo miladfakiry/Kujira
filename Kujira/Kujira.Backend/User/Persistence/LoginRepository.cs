@@ -17,4 +17,5 @@ public class LoginRepository : RepositoryBase<Login>, ILoginRepository
                          .Include(l => l.User)
                          .FirstOrDefault(l => l.Email == email);
     }
+
 }

@@ -22,8 +22,11 @@
             <MudTextField @bind-Value="offerRequest.BiologicalChildren" Label="Biologische Kinder" For="() => offerRequest.BiologicalChildren"/>
             <MudTextField @bind-Value="offerRequest.AdditionalNote" Label="Zusätzliche Informationen" Multiline For="() => offerRequest.AdditionalNote"/>
             <MudItem xs="12" sm="6" md="4">
-                <MudAutocomplete T="ZipRequest" Label="PLZ" @bind-Value="@_selectedZip" SearchFunc="@SearchZips" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary">
-                  
+                <MudAutocomplete T="ZipRequest" Label="PLZ" Value="@_selectedZip" ValueChanged="@OnZipSelected" SearchFunc="@SearchZips" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary">
+                </MudAutocomplete>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudAutocomplete T="string" Label="Ort" Value="@_selectedCityName" ValueChanged="@OnCitySelected" SearchFunc="@SearchCities" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" Disabled="@(_selectedZip == null)">
                 </MudAutocomplete>
             </MudItem>
         </MudCardContent>
@@ -49,6 +52,11 @@
     private MudForm form;
     private IEnumerable<ZipRequest> zips;
     private ZipRequest _selectedZip;
+    private ZipRequest _selectedCity;
+    private IEnumerable<string> cities;
+    private string selectedCity;
+    private ZipRequest selectedZip;
+    private string _selectedCityName;
 
 
     protected override async Task OnInitializedAsync()
@@ -62,14 +70,12 @@
     {
         _processing = true;
         await Task.Delay(1000);
-        
+
         await form.Validate();
 
         if (form.IsValid)
         {
             Console.WriteLine($"ICH BIN NEU: LongTermFamilyCare: {offerRequest.LongTermFamilyCare}, CrisisIntervention: {offerRequest.CrisisIntervention}, ReliefOffer: {offerRequest.ReliefOffer}");
-
-
             offerRequest.ZipId = _selectedZip?.Id ?? Guid.Empty;
 
             try
@@ -109,5 +115,38 @@
         return filtered;
     }
 
+    private async Task<IEnumerable<string>> SearchCities(string value)
+    {
+        if (_selectedZip == null || zips == null)
+        {
+            return new List<string>();
+        }
 
+        return zips.Where(x => x.City.StartsWith(value, StringComparison.InvariantCultureIgnoreCase) && x.Code == _selectedZip.Code)
+                   .Select(x => x.City)
+                   .Distinct()
+                   .ToList();
+    }
+
+    private void OnZipSelected(ZipRequest zip)
+    {
+        _selectedZip = zip;
+        cities = zips.Where(z => z.Code == zip.Code).Select(z => z.City).Distinct().ToList();
+
+        if (cities.Any())
+        {
+            _selectedCityName = cities.First();
+        }
+        else
+        {
+            _selectedCityName = null;
+        }
+
+        StateHasChanged();
+    }
+
+    private void OnCitySelected(string cityName)
+    {
+        _selectedCityName = cityName;
+    }
 }

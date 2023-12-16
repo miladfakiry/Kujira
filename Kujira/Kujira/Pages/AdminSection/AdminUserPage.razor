@@ -13,6 +13,12 @@
     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenCreateUserDialog">Benutzer erfassen</MudButton>
 </div>
 
+@if (!_dataLoaded)
+{
+    <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true" />
+}
+else
+{
 <MudDataGrid Items="@_users"
              Hover="@_hover"
              Filterable="false"
@@ -25,7 +31,6 @@
              Bordered="false"
              Dense="false">
     <Columns>
-        @* <PropertyColumn Property="x => x.Id" Title="Id" Filterable="false"/> *@
         <PropertyColumn Property="x => x.Id" Title="Id" Filterable="false"/>
 
         <PropertyColumn Property="x => x.FirstName" Title="Vorname"/>
@@ -65,9 +70,11 @@
     </PagerContent>
 
 </MudDataGrid>
+}
 
 
 @code {
+    private bool _dataLoaded = false;
     private IEnumerable<UserRequest> _users = new List<UserRequest>();
     private UserRequest _selectedUserDto;
     private Guid _id;
@@ -106,6 +113,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _dataLoaded = false;
         startedEditingCallback = EventCallback.Factory.Create<UserRequest>(this, StartedEditingItem);
         canceledEditingCallback = EventCallback.Factory.Create<UserRequest>(this, CanceledEditingItem);
         committedChangesCallback = EventCallback.Factory.Create<UserRequest>(this, CommittedItemChanges);
@@ -114,10 +122,12 @@
         try
         {
             await LoadUsersAsync();
+            _dataLoaded = true;
         }
         catch (Exception e)
         {
             Console.WriteLine($"Es ist ein Problem beim LoadUserAsync aufgetreten, hier ist die Exception:{e}");
+            _dataLoaded = true;
             throw;
         }
     }
