@@ -6,27 +6,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Kujira.Backend.Repositories;
 
-public class CompanyRepository : RepositoryBase<Models.Company>, ICompanyRepository
+public class CompanyRepository : RepositoryBase<Company>, ICompanyRepository
 {
     public CompanyRepository(KujiraContext dbContext) : base(dbContext)
     {
         _dbContext = dbContext;
     }
 
-    public IEnumerable<Models.Company> GetAll()
+    public IEnumerable<Company> GetAll()
     {
-        return _dbContext.Companies.Include(ct => ct.CompanyType)
-                         .Include(c => c.Address)
-                         .ThenInclude(a => a.Zip)
-                         .ThenInclude(z => z.Canton)
-                         .ThenInclude(can => can.Country)
-                         .ToList();
+        return _dbContext.Companies.Include(ct => ct.CompanyType).Include(c => c.Address).ThenInclude(a => a.Zip).ThenInclude(z => z.Canton).ThenInclude(can => can.Country).ToList();
     }
 
-    public Models.Company? Get(Guid id)
+    public Company? Get(Guid id)
     {
-        return _dbContext.Companies
-                         .Include(ct => ct.CompanyType)
+        return _dbContext.Companies.Include(ct => ct.CompanyType)
                          .Include(c => c.Address)
                          .ThenInclude(a => a.Zip)
                          .ThenInclude(z => z.Canton)

@@ -1,9 +1,7 @@
+using System.Globalization;
 using Kujira.Api;
-using Kujira.Backend.Repositories;
-using Kujira.Backend.Repositories.Interfaces;
 using Kujira.Gui;
 using Kujira.Gui.Services;
-using Kujira.Services;
 using Kujira.Shared;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
@@ -11,7 +9,6 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor;
 using MudBlazor.Services;
 using RestEase;
-using System.Globalization;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -36,8 +33,6 @@ builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStat
 
 
 // Other services
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<UserApiService>();
 builder.Services.AddSingleton<LoadingService>();
 
 
