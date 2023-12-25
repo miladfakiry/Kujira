@@ -4,7 +4,7 @@
     {
         public CompanyTypeOption(Guid id, string type)
         {
-            
+
         }
     }
 }

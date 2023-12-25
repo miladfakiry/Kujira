@@ -1,12 +1,13 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using Kujira.Api.DTOs;
+﻿using Kujira.Api.DTOs;
 using Kujira.Api.Settings;
-using Kujira.Backend.User.Domain;
+using Kujira.Backend.Models;
+using Kujira.Backend.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace Kujira.Api.Controllers;
 
@@ -53,7 +54,7 @@ public class AuthController : ControllerBase
                 ValidateAudience = true,
                 ValidAudience = _jwtSettings.Audience,
                 ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero // Optional: Anpassen der Toleranz für die Token-Lebensdauer
+                ClockSkew = TimeSpan.Zero //Token-Lebensdauer
             };
 
             tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
@@ -90,7 +91,7 @@ public class AuthController : ControllerBase
 
     private string GenerateJwtToken(Login login, IEnumerable<UserRole> userRoles)
     {
-       
+
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 

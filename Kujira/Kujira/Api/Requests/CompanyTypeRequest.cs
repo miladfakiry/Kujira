@@ -5,7 +5,10 @@
         public Guid Id { get; set; }
         public string Type { get; set; }
 
-        public CompanyTypeRequest() { }
+        public CompanyTypeRequest()
+        {
+
+        }
 
         public CompanyTypeRequest(Guid id, string type)
         {

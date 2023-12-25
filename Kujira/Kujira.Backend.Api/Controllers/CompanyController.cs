@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Kujira.Api.DTOs;
-using Kujira.Backend.Company.Domain;
-using Kujira.Backend.Company.Persistence;
+using Kujira.Backend.Models;
+using Kujira.Backend.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kujira.Api.Controllers;

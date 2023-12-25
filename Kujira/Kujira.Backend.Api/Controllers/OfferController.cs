@@ -1,9 +1,9 @@
-﻿using System.Security.Claims;
-using AutoMapper;
+﻿using AutoMapper;
 using Kujira.Api.DTOs;
-using Kujira.Backend.Offer.Domain;
+using Kujira.Backend.Models;
+using Kujira.Backend.Repositories;
+using Kujira.Backend.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Kujira.Api.Controllers;
 
@@ -13,11 +13,13 @@ public class OfferController : ControllerBase
 {
     private readonly IMapper _mapper;
     private readonly IOfferRepository _offerRepository;
+    private readonly IZipRepository _zipRepository;
     private readonly ILogger<OfferController> _logger;
 
-    public OfferController(IOfferRepository offerRepository, IMapper mapper, ILogger<OfferController> logger)
+    public OfferController(IOfferRepository offerRepository, IZipRepository zipRepository, IMapper mapper, ILogger<OfferController> logger)
     {
         _offerRepository = offerRepository;
+        _zipRepository = zipRepository;
         _mapper = mapper;
         _logger = logger;
     }
@@ -27,7 +29,7 @@ public class OfferController : ControllerBase
     {
         try
         {
-           
+
             var offer = _mapper.Map<Offer>(offerDto);
             offer.ZipId = offerDto.ZipId;
 
@@ -75,30 +77,46 @@ public class OfferController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllOffers()
     {
-        var offers = await _offerRepository.GetAllAsync();
-        var offerDtos = offers.Select(o => new OfferDto
+        try
         {
-            Id = o.Id,
-            AvailablePlaces = o.AvailablePlaces,
-            LongTermFamilyCare = o.LongTermFamilyCare,
-            CrisisIntervention = o.CrisisIntervention,
-            ReliefOffer = o.ReliefOffer,
-            CurrentlyPlacedFosterChildren = o.CurrentlyPlacedFosterChildren,
-            BiologicalChildren = o.BiologicalChildren,
-            AdditionalNote = o.AdditionalNote,
-            IsInactive = o.IsInactive,
-            PhoneNumber = o.User?.Company?.PhoneNumber,
-            EMailAddress = o.User?.Company?.EMailAddress,
-            CompanyName = o.User?.Company?.Name,
-            ZipCode = o.User?.Company?.Address?.Zip?.Code,
-            City = o.User?.Company?.Address?.Zip?.City, 
-            ZipId = o.ZipId,
-            UserId = o.UserId,
+            var offers = await _offerRepository.GetAllAsync();
 
-            
-        });
+            var offerDtos = new List<OfferDto>();
 
-        return Ok(offerDtos);
+            foreach (var offer in offers)
+            {
+                var zip = await _zipRepository.GetByIdAsync(offer.ZipId);
+
+                var offerDto = new OfferDto
+                {
+                    Id = offer.Id,
+                    AvailablePlaces = offer.AvailablePlaces,
+                    LongTermFamilyCare = offer.LongTermFamilyCare,
+                    CrisisIntervention = offer.CrisisIntervention,
+                    ReliefOffer = offer.ReliefOffer,
+                    CurrentlyPlacedFosterChildren = offer.CurrentlyPlacedFosterChildren,
+                    BiologicalChildren = offer.BiologicalChildren,
+                    AdditionalNote = offer.AdditionalNote,
+                    IsInactive = offer.IsInactive,
+                    PhoneNumber = offer.User?.Company?.PhoneNumber,
+                    EMailAddress = offer.User?.Company?.EMailAddress,
+                    CompanyName = offer.User?.Company?.Name,
+                    ZipCode = zip?.Code,
+                    City = zip?.City,
+                    ZipId = offer.ZipId,
+                    UserId = offer.UserId
+                };
+
+                offerDtos.Add(offerDto);
+            }
+
+            return Ok(offerDtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error in GetAllOffers: {ex.Message}");
+            return StatusCode(500, ex.Message);
+        }
     }
 
     [HttpPut("{id}")]

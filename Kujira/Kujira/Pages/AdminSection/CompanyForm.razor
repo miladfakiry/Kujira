@@ -35,15 +35,10 @@
                             }
                         }
                     </MudSelect>
-                    <MudSelect T="ZipRequest" Label="Stadt" @bind-Value="@selectedZip" Required="true" OnOpen="GetByCodeWithCantonAndCountry">
-                        @if (zips != null)
-                        {
-                            @foreach (var cities in zips)
-                            {
-                                <MudSelectItem Value="@cities" />
-                            }
-                        }
-                    </MudSelect>
+                    @* <MudItem xs="12" sm="6" md="4">
+                        <MudAutocomplete T="string" Label="Ort" Value="@_selectedCityName" ValueChanged="@OnCitySelected" SearchFunc="@SearchCities" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" Disabled="@(_selectedZip == null)">
+                        </MudAutocomplete>
+                    </MudItem> *@
                     <MudTextField Label="Ort" @bind-Value="@companyFormModel.ZipCity" For="@(() => companyFormModel.ZipCity)" Required="true" />
                     <MudTextField Label="Kanton" @bind-Value="@companyFormModel.CantonName" Disabled />
                     <MudTextField Label="Land" @bind-Value="@companyFormModel.CountryName" Disabled />
@@ -79,6 +74,7 @@
     private CompanyTypeRequest selectedCompanyType;
     private CountryRequest selectedCountry;
     private ZipRequest _selectedZip;
+    private string _selectedCityName;
 
     
     private ZipRequest selectedZip
@@ -150,6 +146,24 @@
             Snackbar.Add($"Fehler beim Erfassen der Firma: {ex.Message}", Severity.Error);
         }
         _processing = false;
+    }
+
+    private async Task<IEnumerable<string>> SearchCities(string value)
+    {
+        if (_selectedZip == null || zips == null)
+        {
+            return new List<string>();
+        }
+
+        return zips.Where(x => x.City.StartsWith(value, StringComparison.InvariantCultureIgnoreCase) && x.Code == _selectedZip.Code)
+                   .Select(x => x.City)
+                   .Distinct()
+                   .ToList();
+    }
+
+    private void OnCitySelected(string cityName)
+    {
+        _selectedCityName = cityName;
     }
 
 }

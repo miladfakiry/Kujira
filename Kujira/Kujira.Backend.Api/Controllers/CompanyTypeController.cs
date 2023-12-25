@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Kujira.Api.DTOs;
-using Kujira.Backend.Company.Domain;
+using Kujira.Backend.Models;
+using Kujira.Backend.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kujira.Api.Controllers;
@@ -21,7 +22,7 @@ public class CompanyTypeController : ControllerBase
     [HttpGet]
     public ActionResult<IEnumerable<CompanyTypeDto>> GetCompanyTypes()
     {
-        var companyTypes =  _companyTypeRepository.GetAll();
+        var companyTypes = _companyTypeRepository.GetAll();
         var companyTypeDtos = _mapper.Map<IEnumerable<CompanyTypeDto>>(companyTypes);
         return Ok(companyTypeDtos);
     }

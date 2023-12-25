@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Kujira.Backend.Api.DTOs;
-using Kujira.Backend.User.Domain;
+using Kujira.Backend.Models;
 
 namespace Kujira.Api.AutoMapperProfiles;
 
@@ -24,7 +24,6 @@ public class UserProfile : Profile
             .ConstructUsing(dto => new PersonalInformation(Guid.NewGuid(), dto.DateOfBirth, dto.Id)
             {
                 PhoneNumber = dto.PhoneNumber
-                // Weitere Zuweisungen hier
             });
 
         CreateMap<User, UserDto>()

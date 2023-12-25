@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Kujira.Api.DTOs;
-using Kujira.Backend.Company.Domain;
+using Kujira.Backend.Models;
 
 namespace Kujira.Api.AutoMapperProfiles;
 
@@ -31,7 +31,6 @@ public class CompanyProfile : Profile
         CreateMap<CompanyDto, Address>()
             .ForMember(dest => dest.Street, opt => opt.MapFrom(src => src.Street))
             .ForMember(dest => dest.StreetNumber, opt => opt.MapFrom(src => src.StreetNumber));
-            //.ForMember(dest => dest.ZipId, opt => opt.MapFrom(src => /* Logik zur Umwandlung von ZipCode in ZipId */));
 
         // Mapping von Address zu CompanyDto
         CreateMap<Address, CompanyDto>()
@@ -47,17 +46,17 @@ public class CompanyProfile : Profile
 
     private Address CreateOrUpdateAddress(CompanyDto src, Company dest)
     {
-        
+
         if (src.AddressId == Guid.Empty)
         {
-          
+
             var newZip = new Zip(Guid.NewGuid(), src.ZipCode, src.City, Guid.NewGuid());
             var newAddress = new Address(Guid.NewGuid(), src.Street, src.StreetNumber, newZip);
             return newAddress;
         }
         else
         {
-           
+
             if (dest.Address != null)
             {
                 dest.Address.Street = src.Street;

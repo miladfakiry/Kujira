@@ -17,7 +17,7 @@
 
         }
 
-        public ZipRequest(Guid id, string code, string city,Guid cantonId, string canton, Guid countryId, string country)
+        public ZipRequest(Guid id, string code, string city, Guid cantonId, string canton, Guid countryId, string country)
         {
             Id = id;
             Code = code;

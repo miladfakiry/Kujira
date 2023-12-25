@@ -1,6 +1,6 @@
-﻿using System.Security.Claims;
+﻿using Microsoft.JSInterop;
+using System.Security.Claims;
 using System.Text.Json;
-using Microsoft.JSInterop;
 
 namespace Kujira.Gui.Services;
 

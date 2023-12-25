@@ -1,14 +1,11 @@
-using System.Text;
 using Kujira.Api.Settings;
-using Kujira.Backend.Company.Domain;
-using Kujira.Backend.Company.Persistence;
-using Kujira.Backend.Offer.Domain;
-using Kujira.Backend.Offer.Persistence;
-using Kujira.Backend.User.Domain;
-using Kujira.Backend.User.Persistence;
+using Kujira.Backend.Repositories;
+using Kujira.Backend.Repositories.Interfaces;
+using Kujira.Backend.Shared;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 

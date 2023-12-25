@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Kujira.Api.DTOs;
-using Kujira.Backend.Company.Domain;
+using Kujira.Backend.Models;
 
 namespace Kujira.Api.AutoMapperProfiles;
 
@@ -11,5 +11,5 @@ public class CompanyTypeProfile : Profile
         CreateMap<CompanyType, CompanyTypeDto>();
         CreateMap<CompanyTypeDto, CompanyType>();
     }
-    
+
 }
