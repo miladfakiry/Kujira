@@ -1,80 +1,79 @@
 ﻿@page "/adminCompany"
+@using Kujira.Gui.Api.Requests
 @using MudBlazor
 @using Kujira.Api
-@using Kujira.Gui.Api.Requests
 @inject IDialogService DialogService
 @inject IKujiraBackendApi KujiraBackendApi
 
 
-
 <div class="d-flex justify-space-between align-items-center my-2">
-    <h1>Firmen verwalten</h1>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenCreateCompanyDialog">Firma erfassen</MudButton>
+    <h1>Verwaltungen</h1>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenCreateCompanyDialog">Verwaltung erfassen</MudButton>
 </div>
 
 @if (!_dataLoaded)
 {
-    <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true" />
+    <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true"/>
 }
 else
 {
-<MudDataGrid Items="@_companies"
-             Hover="@_hover"
-             Filterable="false"
-             SortMode="@SortMode.Multiple"
-             Groupable="true"
-             ReadOnly="@_readOnly"
-             StartedEditingItem="@startedEditingCallback"
-             CanceledEditingItem="@canceledEditingCallback"
-             CommittedItemChanges="@committedChangesCallback"
-             Bordered="false"
-             Dense="false">
-    <Columns>
-        <PropertyColumn Property="x => x.Id" Title="Id" Filterable="false"/>
-        <PropertyColumn Property="x => x.Name" Title="Firmenname"/>
-        <PropertyColumn Property="x => x.AddStreet" Title="Strasse"/>
-        <PropertyColumn Property="x => x.AddStreetNumber" Title="Nummer"/>
-        <PropertyColumn Property="x => x.ZipCode" Title="PLZ"/>
-        <PropertyColumn Property="x => x.ZipCity" Title="Stadt"/>
-        <PropertyColumn Property="x => x.CantonName" Title="Kanton">
-            <FilterTemplate>
-                <MudIconButton OnClick="@OpenFilter" Icon="@_icon" Size="@Size.Small"/>
-                <MudOverlay Visible="@_filterOpen" OnClick="@(() => _filterOpen = false)"/>
-                <MudPopover Open="@_filterOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter"
-                            Style="width:150px">
-                    <MudStack Spacing="0">
-                        <MudStack Row="true">
-                            <MudButton OnClick="@(() => ClearFilterAsync(context))">Clear</MudButton>
-                            <MudButton Color="@Color.Primary" OnClick="@(() => ApplyFilterAsync(context))">Filter</MudButton>
+    <MudDataGrid Items="@_companies"
+                 Hover="@_hover"
+                 Filterable="false"
+                 SortMode="@SortMode.Multiple"
+                 Groupable="true"
+                 ReadOnly="@_readOnly"
+                 StartedEditingItem="@startedEditingCallback"
+                 CanceledEditingItem="@canceledEditingCallback"
+                 CommittedItemChanges="@committedChangesCallback"
+                 Bordered="false"
+                 Dense="false">
+        <Columns>
+            <PropertyColumn Property="x => x.Id" Title="Id" Filterable="false"/>
+            <PropertyColumn Property="x => x.Name" Title="Name der Verwaltung"/>
+            <PropertyColumn Property="x => x.AddStreet" Title="Strasse"/>
+            <PropertyColumn Property="x => x.AddStreetNumber" Title="Nummer"/>
+            <PropertyColumn Property="x => x.ZipCode" Title="PLZ"/>
+            <PropertyColumn Property="x => x.ZipCity" Title="Stadt"/>
+            <PropertyColumn Property="x => x.CantonName" Title="Kanton">
+                <FilterTemplate>
+                    <MudIconButton OnClick="@OpenFilter" Icon="@_icon" Size="@Size.Small"/>
+                    <MudOverlay Visible="@_filterOpen" OnClick="@(() => _filterOpen = false)"/>
+                    <MudPopover Open="@_filterOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter"
+                                Style="width:150px">
+                        <MudStack Spacing="0">
+                            <MudStack Row="true">
+                                <MudButton OnClick="@(() => ClearFilterAsync(context))">Clear</MudButton>
+                                <MudButton Color="@Color.Primary" OnClick="@(() => ApplyFilterAsync(context))">Filter</MudButton>
+                            </MudStack>
                         </MudStack>
-                    </MudStack>
-                </MudPopover>
-            </FilterTemplate>
-        </PropertyColumn>
-        <PropertyColumn Property="x => x.CountryName" Title="Land"/>
-        <PropertyColumn Property="x => x.CompanyTypeName" Title="Firmen Typ"/>
-        <PropertyColumn Property="x => x.PhoneNumber" Title="Telefonnummer"/>
-        <PropertyColumn Property="x => x.EMailAddress" Title="E-Mail"/>
-        <PropertyColumn Property="x => x.WebsiteAddress" Title="Website"/>
+                    </MudPopover>
+                </FilterTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.CountryName" Title="Land"/>
+            <PropertyColumn Property="x => x.CompanyTypeName" Title="Verwaltungstyp"/>
+            <PropertyColumn Property="x => x.PhoneNumber" Title="Telefonnummer"/>
+            <PropertyColumn Property="x => x.EMailAddress" Title="E-Mail"/>
+            <PropertyColumn Property="x => x.WebsiteAddress" Title="Website"/>
 
-        <TemplateColumn Hidden="@_isCellEditMode">
-            <CellTemplate>
-                <MudIconButton Color="Color.Primary" Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => StartedEditingItem(context.Item))"/>
-                <MudIconButton Color="Color.Error" Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => DeleteCompany(context.Item))"/>
-            </CellTemplate>
-        </TemplateColumn>
+            <TemplateColumn Hidden="@_isCellEditMode">
+                <CellTemplate>
+                    <MudIconButton Color="Color.Primary" Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => StartedEditingItem(context.Item))"/>
+                    <MudIconButton Color="Color.Error" Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => DeleteCompany(context.Item))"/>
+                </CellTemplate>
+            </TemplateColumn>
 
-    </Columns>
+        </Columns>
 
-    <PagerContent>
-        <MudDataGridPager T="CompanyRequest" />
-    </PagerContent>
+        <PagerContent>
+            <MudDataGridPager T="CompanyRequest"/>
+        </PagerContent>
 
-</MudDataGrid>
+    </MudDataGrid>
 }
 
 @code {
-    private bool _dataLoaded = false;
+    private bool _dataLoaded;
     private IEnumerable<CompanyRequest> _companies = new List<CompanyRequest>();
     private CompanyRequest _selectedCompanyDto;
     private Guid _id;
@@ -132,10 +131,10 @@ else
     private async Task OpenCreateCompanyDialog()
     {
         var options = new DialogOptions
-            {
-                MaxWidth = MaxWidth.Medium,
-                FullWidth = true
-            };
+        {
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true
+        };
         var parameters = new DialogParameters();
         parameters.Add("OnCompanyCreated", EventCallback.Factory.Create<bool>(this, async result =>
         {
@@ -145,7 +144,7 @@ else
             }
         }));
 
-        var dialog = DialogService.Show<CompanyForm>("Firma erfassen", parameters, options);
+        var dialog = DialogService.Show<CompanyForm>("Verwaltung erfassen", parameters, options);
         await dialog.Result;
     }
 
@@ -213,16 +212,15 @@ else
             }
 
             var options = new DialogOptions
-                {
-                    MaxWidth = MaxWidth.ExtraSmall,
-                    FullWidth = true,
-
-                };
+            {
+                MaxWidth = MaxWidth.ExtraSmall,
+                FullWidth = true
+            };
             var parameters = new DialogParameters
-                {
-                    ["company"] = companyToEdit
-                };
-            var dialog = DialogService.Show<EditCompanyDialog>("Firma bearbeiten", parameters, options);
+            {
+                ["company"] = companyToEdit
+            };
+            var dialog = DialogService.Show<EditCompanyDialog>("Verwaltung bearbeiten", parameters, options);
             var result = await dialog.Result;
 
             if (!result.Cancelled)
@@ -257,7 +255,7 @@ else
 
     private async Task DeleteCompany(CompanyRequest item)
     {
-        var confirmation = await DialogService.ShowMessageBox("Bestätigen", "Möchten Sie diese Firma wirklich löschen?", "Löschen", cancelText: "Abbrechen");
+        var confirmation = await DialogService.ShowMessageBox("Bestätigen", "Möchten Sie diese Verwaltung wirklich löschen?", "Löschen", cancelText: "Abbrechen");
         if (confirmation != true)
         {
             return;

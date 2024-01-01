@@ -12,7 +12,7 @@
         <MudItem xs="12">
             <MudCard>
                 <MudCardContent>
-                    <MudSelect T="CompanyTypeRequest" Label="Firmentyp" @bind-Value="@selectedCompanyType" OnOpen="@LoadCompanyTypes">
+                    <MudSelect T="CompanyTypeRequest" Label="Verwaltungstyp" @bind-Value="@selectedCompanyType" OnOpen="@LoadCompanyTypes">
                         @if (companyTypes != null)
                         {
 
@@ -23,7 +23,7 @@
                             }
                         }
                     </MudSelect>
-                    <MudTextField Label="Firmenname" @bind-Value="@companyFormModel.Name" For="@(() => companyFormModel.Name)" Required="true" />
+                    <MudTextField Label="Name der Verwaltung" @bind-Value="@companyFormModel.Name" For="@(() => companyFormModel.Name)" Required="true" />
                     <MudTextField Label="Strasse" @bind-Value="@companyFormModel.AddStreet" For="@(() => companyFormModel.AddStreet)" Required="true" />
                     <MudTextField Label="Nummer" @bind-Value="@companyFormModel.AddStreetNumber" For="@(() => companyFormModel.AddStreetNumber)" Required="true" />
                     <MudSelect T="ZipRequest" Label="PLZ" @bind-Value="@selectedZip" Required="true" OnOpen="GetByCodeWithCantonAndCountry">
@@ -55,7 +55,7 @@
                         }
                         else
                         {
-                            <MudText>Firma erfassen</MudText>
+                            <MudText>Verwaltung erfassen</MudText>
                         }
                     </MudButton>
                 </MudCardActions>
@@ -135,7 +135,7 @@
             companyFormModel.CompanyTypeName = selectedCompanyType.Type;
             companyFormModel.ZipCode = selectedZip.Code;
             await KujiraBackendApi.CreateCompany((CompanyRequest)companyFormModel);
-            Snackbar.Add("Firma erfolgreich erfasst", Severity.Success);
+            Snackbar.Add("Verwaltung erfolgreich erfasst", Severity.Success);
             await OnCompanyCreated.InvokeAsync(true);
             MudDialog.Close(DialogResult.Ok(true));
 
@@ -143,7 +143,7 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Fehler beim Erstellen der Company: {ex}");
-            Snackbar.Add($"Fehler beim Erfassen der Firma: {ex.Message}", Severity.Error);
+            Snackbar.Add($"Fehler beim Erfassen der Verwaltung: {ex.Message}", Severity.Error);
         }
         _processing = false;
     }

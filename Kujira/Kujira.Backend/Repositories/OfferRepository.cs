@@ -1,34 +1,26 @@
 ﻿using Kujira.Backend.Models;
 using Kujira.Backend.Repositories.Interfaces;
 using Kujira.Backend.Shared;
-using Kujira.Backend.Shared.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kujira.Backend.Repositories;
 
-public class OfferRepository : RepositoryBase<Models.Offer>, IOfferRepository
+public class OfferRepository : RepositoryBase<Offer>, IOfferRepository
 {
     public OfferRepository(KujiraContext dbContext) : base(dbContext)
     {
-        _dbContext = dbContext;
+        DbContext = dbContext;
     }
 
-    public async Task<IEnumerable<Models.Offer>> GetAllAsync()
+    public async Task<IEnumerable<Offer>> GetAllAsync()
     {
-        return await _dbContext.Offers
-                               .Include(o => o.User)
-                               .ThenInclude(u => u.Company)
-                               .ThenInclude(c => c.Address)
-                               .ThenInclude(a => a.Zip)
-                               .ToListAsync();
+        return await DbContext.Offers.Include(o => o.User).ThenInclude(u => u.Company).ThenInclude(c => c.Address).ThenInclude(a => a.Zip).ToListAsync();
     }
 
 
-    public async Task<Models.Offer> GetByIdAsync(Guid id)
+    public async Task<Offer> GetByIdAsync(Guid id)
     {
-        var offer = await _dbContext.Offers
-                                    .Include(o => o.User)
-                                    .FirstOrDefaultAsync(o => o.Id == id);
+        var offer = await DbContext.Offers.Include(o => o.User).FirstOrDefaultAsync(o => o.Id == id);
 
         if (offer == null)
         {
@@ -38,28 +30,26 @@ public class OfferRepository : RepositoryBase<Models.Offer>, IOfferRepository
         return offer;
     }
 
-    public async Task<IEnumerable<Models.Offer>> GetOffersByUserIdAsync(Guid userId)
+    public async Task<IEnumerable<Offer>> GetOffersByUserIdAsync(Guid userId)
     {
-        return await _dbContext.Offers
-                               .Where(o => o.UserId == userId)
-                               .ToListAsync();
+        return await DbContext.Offers.Where(o => o.UserId == userId).ToListAsync();
     }
 
-    public async Task AddAsync(Models.Offer offer)
+    public async Task AddAsync(Offer offer)
     {
-        await _dbContext.Offers.AddAsync(offer);
-        await _dbContext.SaveChangesAsync();
+        await DbContext.Offers.AddAsync(offer);
+        await DbContext.SaveChangesAsync();
     }
 
-    public async Task UpdateAsync(Models.Offer offer)
+    public async Task UpdateAsync(Offer offer)
     {
-        _dbContext.Offers.Update(offer);
-        await _dbContext.SaveChangesAsync();
+        DbContext.Offers.Update(offer);
+        await DbContext.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(Models.Offer offer)
+    public async Task DeleteAsync(Offer offer)
     {
-        _dbContext.Offers.Remove(offer);
-        await _dbContext.SaveChangesAsync();
+        DbContext.Offers.Remove(offer);
+        await DbContext.SaveChangesAsync();
     }
 }

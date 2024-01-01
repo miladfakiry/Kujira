@@ -20,7 +20,6 @@ else
 <MudDataGrid Items="@_offers" ReadOnly="@_isReadOnly" Hover="@_hover" Filterable="false" SortMode="@SortMode.Multiple" Groupable="false" EditMode="@DataGridEditMode.Cell">
     <Columns>
         <HierarchyColumn T="OfferRequest"/>
-        <PropertyColumn Property="x => x.Id" Title="Id" Filterable="false"/>
         <PropertyColumn Property="x => x.AvailablePlaces" Title="Verfügbare Plätze"/>
         <PropertyColumn Property="x => x.City" Title="Ort"/>
         <TemplateColumn T="OfferRequest" Title="Langzeitpflege">

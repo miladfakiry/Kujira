@@ -6,10 +6,10 @@
 @inject IKujiraBackendApi KujiraBackendApi
 
 
-<PageTitle>User Verwaltung</PageTitle>
+<PageTitle>Benutzerverwaltung</PageTitle>
 
 <div class="d-flex justify-space-between align-items-center my-2">
-    <h1>User verwalten</h1>
+    <h1>Benutzer verwalten</h1>
     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenCreateUserDialog">Benutzer erfassen</MudButton>
 </div>
 
@@ -54,7 +54,12 @@ else
         <PropertyColumn Property="x => x.DateOfBirth" Title="Geburtsdatum" IsEditable="true" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" />
         <PropertyColumn Property="x => x.PhoneNumber" Title="Telefonnummer" Required="false"/>
         <PropertyColumn Property="x => x.CreateDate" Title="Erstellt am:"/>
-        <PropertyColumn Property="x => x.IsInactive" Title="Inaktiv" IsEditable="true" Filterable="true"/>
+        <TemplateColumn T="UserRequest" Title="Inaktiv">
+            <CellTemplate>
+                    <MudCheckBox Checked="@context.Item.IsInactive" Title="Inaktiv" IsEditable="true" Filterable="true" />
+            </CellTemplate>
+        </TemplateColumn>
+       @*  <PropertyColumn Property="x => x.IsInactive" Title="Inaktiv" IsEditable="true" Filterable="true"/> *@
 
         <TemplateColumn Hidden="@_isCellEditMode">
             <CellTemplate>

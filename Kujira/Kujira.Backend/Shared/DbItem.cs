@@ -1,4 +1,4 @@
-﻿namespace Kujira.Backend.Shared.Persistence;
+﻿namespace Kujira.Backend.Shared;
 
 public abstract class DbItem : IEqualityComparer<DbItem>
 {

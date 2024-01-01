@@ -1,4 +1,4 @@
-﻿using Kujira.Backend.Shared.Persistence;
+﻿using Kujira.Backend.Shared;
 
 namespace Kujira.Backend.Models;
 

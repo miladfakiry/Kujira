@@ -1,24 +1,23 @@
 ﻿
-namespace Kujira.Backend.Shared.Persistence;
+namespace Kujira.Backend.Shared;
 
 public abstract class RepositoryBase<T> : IRepositoryBase<T> where T : DbItem
 {
-    protected KujiraContext _dbContext;
+    protected KujiraContext DbContext;
 
     protected RepositoryBase(KujiraContext dbContext)
     {
-        _dbContext = dbContext;
+        DbContext = dbContext;
     }
-
 
     public IEnumerable<T>? GetAll()
     {
-        return _dbContext.Set<T>().ToList();
+        return DbContext.Set<T>().ToList();
     }
 
     public T? Get(Guid id)
     {
-        var dbItem = _dbContext.Set<T>().Find(id);
+        var dbItem = DbContext.Set<T>().Find(id);
         if (dbItem == null)
         {
             throw new KeyNotFoundException();
@@ -29,8 +28,8 @@ public abstract class RepositoryBase<T> : IRepositoryBase<T> where T : DbItem
 
     public void Update(T dbItem)
     {
-        _dbContext.Set<T>()?.Update(dbItem);
-        _dbContext.SaveChanges();
+        DbContext.Set<T>()?.Update(dbItem);
+        DbContext.SaveChanges();
     }
 
     public void Delete(Guid id)
@@ -38,8 +37,8 @@ public abstract class RepositoryBase<T> : IRepositoryBase<T> where T : DbItem
         var dbItem = Get(id);
         if (dbItem != null)
         {
-            _dbContext.Set<T>()?.Remove(dbItem);
-            _dbContext.SaveChanges();
+            DbContext.Set<T>()?.Remove(dbItem);
+            DbContext.SaveChanges();
         }
         else
         {
@@ -51,7 +50,7 @@ public abstract class RepositoryBase<T> : IRepositoryBase<T> where T : DbItem
 
     public void Create(T dbItem)
     {
-        _dbContext.Set<T>()?.Add(dbItem);
-        _dbContext.SaveChanges();
+        DbContext.Set<T>()?.Add(dbItem);
+        DbContext.SaveChanges();
     }
 }

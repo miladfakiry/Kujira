@@ -17,7 +17,7 @@
                     <MudTextField Label="Nachname" @bind-Value="@userFormModel.LastName" For="@(() => userFormModel.LastName)" />
                     <MudDatePicker Label="Geburtsdatum" Editable="true" @bind-Date="userFormModel.DateOfBirth" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" />
                     <MudTextField Label="Telefonnummer" @bind-Value="@userFormModel.PhoneNumber" For="@(() => userFormModel.PhoneNumber)" Required="false" />
-                    <MudSelect T="CompanyOption" Label="Firma" @bind-Value="selectedCompany">
+                    <MudSelect T="CompanyOption" Label="Verwaltung" @bind-Value="selectedCompany">
                         @if (companies != null)
                         {
                             @foreach (var company in companies)
@@ -27,7 +27,7 @@
                         }
                         else
                         {
-                            <MudSelectItem Value="@(new CompanyOption(Guid.Empty, "Keine Firmen verfügbar"))" Disabled />
+                            <MudSelectItem Value="@(new CompanyOption(Guid.Empty, "Keine Verwaltung verfügbar"))" Disabled />
                         }
                     </MudSelect>
                     <MudTextField Label="E-Mail-Adresse" @bind-Value="@userFormModel.Email" For="@(() => userFormModel.Email)" Validation="@(new EmailAddressAttribute() {ErrorMessage = "Die E-Mail Adresse ist nicht gültig"})" Required="true" />

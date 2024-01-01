@@ -8,7 +8,7 @@
 
 <MudDialog>
     <DialogContent>
-        <MudTextField Label="Firmenname" @bind-Value="@company.Name" Required="true" />
+        <MudTextField Label="Name der Verwaltung" @bind-Value="@company.Name" Required="true" />
         <MudTextField Label="Strasse" @bind-Value="@company.AddStreet" Required="true" />
         <MudTextField Label="Nummer" @bind-Value="@company.AddStreetNumber" Required="true" />
         <MudTextField Label="PLZ" @bind-Value="@company.ZipCode" Required="true" />
@@ -19,7 +19,7 @@
         <MudTextField Label="E-Mail" @bind-Value="@company.EMailAddress" Validation="@(new EmailAddressAttribute() {ErrorMessage = "Die E-Mail Adresse ist nicht gültig"})" Required="true"/>
         <MudTextField Label="Website" @bind-Value="@company.WebsiteAddress"/>
 
-        <MudSelect T="CompanyTypeRequest" Label="Firmentyp" @bind-Value="@selectedCompanyType" OnOpen="@LoadCompanyTypes">
+        <MudSelect T="CompanyTypeRequest" Label="Verwaltungstyp" @bind-Value="@selectedCompanyType" OnOpen="@LoadCompanyTypes">
             @if (companyTypes != null)
             {
 
@@ -75,7 +75,7 @@
     {
         company.CompanyTypeId = selectedCompanyType.Id;
         await KujiraBackendApi.UpdateCompany(company.Id, company);
-        Snackbar.Add("Firma erfolgreich aktualisiert", Severity.Success);
+        Snackbar.Add("Verwaltung erfolgreich aktualisiert", Severity.Success);
         MudDialog.Close(DialogResult.Ok(true));
     }
 

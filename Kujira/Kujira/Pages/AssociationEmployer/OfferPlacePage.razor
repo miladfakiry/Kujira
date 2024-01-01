@@ -14,10 +14,9 @@
     <MudForm Model="@offerRequest" @ref="@form">
         <MudCardContent>
             <MudTextField @bind-Value="offerRequest.AvailablePlaces" Label="Verfügbare Plätze" For="() => offerRequest.AvailablePlaces"/>
-            <MudCheckBox @bind-Value="offerRequest.LongTermFamilyCare" Label="Langzeitpflege" For="() => offerRequest.LongTermFamilyCare"/>
-            <MudCheckBox @bind-Value="offerRequest.CrisisIntervention" Label="Krisenintervention" For="() => offerRequest.CrisisIntervention"/>
-            <MudCheckBox @bind-Value="offerRequest.ReliefOffer" Label="Entlastungsangebot" For="() => offerRequest.ReliefOffer"/>
-
+            <MudCheckBox @bind-Value="offerRequest.LongTermFamilyCare" Label="Langzeitpflege" />
+            <MudCheckBox @bind-Value="offerRequest.CrisisIntervention" Label="Krisenintervention" />
+            <MudCheckBox @bind-Value="offerRequest.ReliefOffer" Label="Entlastungsangebot" />
             <MudTextField @bind-Value="offerRequest.CurrentlyPlacedFosterChildren" Label="Aktuell platzierte Pflegekinder" For="() => offerRequest.CurrentlyPlacedFosterChildren"/>
             <MudTextField @bind-Value="offerRequest.BiologicalChildren" Label="Biologische Kinder" For="() => offerRequest.BiologicalChildren"/>
             <MudTextField @bind-Value="offerRequest.AdditionalNote" Label="Zusätzliche Informationen" Multiline For="() => offerRequest.AdditionalNote"/>

@@ -1,5 +1,5 @@
 ﻿
-namespace Kujira.Backend.Shared.Persistence;
+namespace Kujira.Backend.Shared;
 
 public interface IRepositoryBase<T> where T : class
 {

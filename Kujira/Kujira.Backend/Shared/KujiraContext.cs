@@ -1,21 +1,26 @@
 ﻿using Kujira.Backend.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace Kujira.Backend.Shared;
 
 public class KujiraContext : DbContext
 {
+    public KujiraContext()
+    {
+    }
+
     public KujiraContext(DbContextOptions options) : base(options)
     {
     }
 
-    public virtual DbSet<User?> Users { get; set; }
+    public virtual DbSet<User> Users { get; set; }
     public virtual DbSet<PersonalInformation> PersonalInformation { get; set; }
     public virtual DbSet<Address> Addresses { get; set; }
     public virtual DbSet<Zip> Zips { get; set; }
     public virtual DbSet<Country> Countries { get; set; }
     public virtual DbSet<Canton> Cantons { get; set; }
-    public virtual DbSet<Company?> Companies { get; set; }
+    public virtual DbSet<Company> Companies { get; set; }
     public virtual DbSet<CompanyType> CompanyTypes { get; set; }
     public virtual DbSet<Offer> Offers { get; set; }
     public virtual DbSet<Request> Requests { get; set; }
@@ -23,6 +28,19 @@ public class KujiraContext : DbContext
     public virtual DbSet<UserRole> UserRoles { get; set; }
     public virtual DbSet<Login> Logins { get; set; }
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            var basePath = Path.Combine(Directory.GetCurrentDirectory(), "../Kujira.Backend.Api");
+            IConfigurationRoot configuration = new ConfigurationBuilder()
+                                               .SetBasePath(basePath)
+                                               .AddJsonFile("appsettings.json")
+                                               .Build();
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            optionsBuilder.UseNpgsql(connectionString);
+        }
+    }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Login>(loginEntity =>

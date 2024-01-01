@@ -1,7 +1,6 @@
 ﻿using Kujira.Backend.Models;
 using Kujira.Backend.Repositories.Interfaces;
 using Kujira.Backend.Shared;
-using Kujira.Backend.Shared.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kujira.Backend.Repositories;
@@ -10,29 +9,29 @@ public class CompanyTypeRepository : RepositoryBase<CompanyType>, ICompanyTypeRe
 {
     public CompanyTypeRepository(KujiraContext dbContext) : base(dbContext)
     {
-        _dbContext = dbContext;
+        DbContext = dbContext;
     }
 
     public IEnumerable<CompanyType> GetAll()
     {
-        return _dbContext.CompanyTypes.ToList();
+        return DbContext.CompanyTypes.ToList();
     }
 
     public CompanyType? Get(Guid id)
     {
-        return _dbContext.CompanyTypes.Find(id);
+        return DbContext.CompanyTypes.Find(id);
     }
 
     public void Create(CompanyType companyType)
     {
-        _dbContext.CompanyTypes.Add(companyType);
-        _dbContext.SaveChanges();
+        DbContext.CompanyTypes.Add(companyType);
+        DbContext.SaveChanges();
     }
 
     public void Update(CompanyType companyType)
     {
-        _dbContext.Entry(companyType).State = EntityState.Modified;
-        _dbContext.SaveChanges();
+        DbContext.Entry(companyType).State = EntityState.Modified;
+        DbContext.SaveChanges();
     }
 
     public void Delete(Guid id)
@@ -40,8 +39,8 @@ public class CompanyTypeRepository : RepositoryBase<CompanyType>, ICompanyTypeRe
         var companyType = Get(id);
         if (companyType != null)
         {
-            _dbContext.CompanyTypes.Remove(companyType);
-            _dbContext.SaveChanges();
+            DbContext.CompanyTypes.Remove(companyType);
+            DbContext.SaveChanges();
         }
     }
 

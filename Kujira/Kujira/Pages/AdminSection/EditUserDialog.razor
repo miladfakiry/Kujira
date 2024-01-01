@@ -11,7 +11,7 @@
         <MudTextField Label="Nachname" @bind-Value="@user.LastName"/>
         <MudTextField Label="Geburtsdatum" @bind-Value="@user.DateOfBirth"/>
         <MudTextField Label="Telefonnummer" @bind-Value="@user.PhoneNumber"/>
-        <MudSelect T="CompanyOption" Label="Firma" @bind-Value="@selectedCompany" OnOpen=@LoadCompanies>
+        <MudSelect T="CompanyOption" Label="Verwaltung" @bind-Value="@selectedCompany" OnOpen=@LoadCompanies>
             @if (companies != null)
             {
                 @foreach (var company in companies)
