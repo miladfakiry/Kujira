@@ -1,6 +1,7 @@
 using System.Globalization;
 using Kujira.Api;
 using Kujira.Gui;
+using Kujira.Gui.Api;
 using Kujira.Gui.Services;
 using Kujira.Shared;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -29,6 +30,10 @@ builder.Services.AddMudServices();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<AuthenticationService>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+builder.Services.AddScoped<CustomAuthenticationStateProvider>();
+builder.Services.AddScoped<AuthorizedHttpService>();
+
+
 
 
 // Other services

@@ -1,0 +1,89 @@
+﻿@using Kujira.Gui.Api.Requests
+@using MudBlazor
+@using Kujira.Api
+@using Kujira.Api.Requests
+@using Kujira.Gui.Api
+@using Kujira.Gui.Services
+@using Newtonsoft.Json
+@inject IKujiraBackendApi KujiraBackendApi
+@inject IDialogService DialogService
+@inject AuthenticationService AuthenticationService
+
+
+<MudDialog>
+    <DialogContent>
+        <MudTextField T="string" Label="Nachricht" @bind-Value="@requestMessage"/>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="@SubmitRequest">Anfrage senden</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    [Parameter]
+    public OfferRequest Offer { get; set; }
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    private string requestMessage;
+
+    private async Task SubmitRequest()
+    {
+        try
+        {
+            var loggedInUserId = await AuthenticationService.GetLoggedInUserIdAsync();
+            var loggedInUserEmail = await AuthenticationService.GetEmailFromTokenAsync();
+
+            if (loggedInUserId == Guid.Empty)
+            {
+                Console.WriteLine("Benutzer ist nicht angemeldet.");
+                return;
+            }
+
+            var user = await GetUserByIdAsync(loggedInUserId);
+            if (user == null)
+            {
+                Console.WriteLine("Benutzerdaten konnten nicht abgerufen werden.");
+                return;
+            }
+
+            var requestDto = new ServiceRequestRequest
+            {
+                OfferId = Offer.Id,
+                FromUserId = loggedInUserId,
+                ToUserId = Offer.UserId,
+                Message = requestMessage,
+                RequesterFirstName = user.FirstName,
+                RequesterLastName = user.LastName,
+                RequesterEmail = loggedInUserEmail,
+                RequesterPhoneNumber = user.PhoneNumber
+            };
+
+            Console.WriteLine("Sende Anfrage mit Daten: {0}", JsonConvert.SerializeObject(requestDto));
+
+            await KujiraBackendApi.SendRequest(requestDto);
+            Console.WriteLine("Anfrage erfolgreich gesendet.");
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Fehler beim Senden der Anfrage: {0}", ex.Message);
+            // Fehlerbehandlung
+        }
+    }
+
+    private async Task<UserRequest> GetUserByIdAsync(Guid userId)
+    {
+        try
+        {
+            return await KujiraBackendApi.GetUser(userId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Fehler beim Abrufen des Benutzers: {ex.Message}");
+            return null;
+        }
+    }
+}

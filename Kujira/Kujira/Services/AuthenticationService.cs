@@ -42,7 +42,7 @@ public class AuthenticationService
         var tokenPayloadJson = tokenPayloadJsonElement.GetRawText();
         var claims = JsonSerializer.Deserialize<Dictionary<string, object>>(tokenPayloadJson);
 
-        var claimsIdentity = new ClaimsIdentity();
+        var claimsIdentity = new ClaimsIdentity("Custom");
         if (claims != null)
         {
             foreach (var claim in claims)
@@ -78,4 +78,16 @@ public class AuthenticationService
         return Guid.Empty;
     }
 
+    public async Task<string> GetEmailFromTokenAsync()
+    {
+        var token = await GetTokenAsync();
+        if (string.IsNullOrEmpty(token))
+        {
+            return null;
+        }
+
+        var claimsIdentity = await GetClaimsIdentityFromToken(token);
+        var emailClaim = claimsIdentity.FindFirst(claim => claim.Type == "sub");
+        return emailClaim?.Value;
+    }
 }

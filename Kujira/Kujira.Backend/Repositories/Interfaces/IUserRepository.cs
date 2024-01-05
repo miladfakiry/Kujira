@@ -5,4 +5,5 @@ namespace Kujira.Backend.Repositories.Interfaces;
 
 public interface IUserRepository : IRepositoryBase<User>
 {
+    Task<User?> GetByIdAsync(Guid id);
 }

@@ -6,6 +6,7 @@
         public string? Name { get; set; }
         public string? AddStreet { get; set; }
         public string? AddStreetNumber { get; set; }
+        public Guid AddressId { get; set; } 
         public string? ZipCode { get; set; }
         public string? ZipCity { get; set; }
         public string? CantonName { get; set; }

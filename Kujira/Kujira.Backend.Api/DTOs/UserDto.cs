@@ -1,7 +1,7 @@
-﻿using Newtonsoft.Json;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
-namespace Kujira.Backend.Api.DTOs
+namespace Kujira.Api.DTOs
 {
     public class UserDto
     {
@@ -49,7 +49,6 @@ namespace Kujira.Backend.Api.DTOs
         [JsonPropertyName("companyId")]
         [JsonProperty("companyId")]
         public Guid CompanyId { get; set; }
-
 
     }
 }

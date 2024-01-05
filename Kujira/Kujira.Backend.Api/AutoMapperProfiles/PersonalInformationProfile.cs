@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Kujira.Backend.Api.DTOs;
+using Kujira.Api.DTOs;
 using Kujira.Backend.Models;
 
 namespace Kujira.Api.AutoMapperProfiles

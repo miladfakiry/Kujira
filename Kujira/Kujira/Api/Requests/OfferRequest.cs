@@ -1,4 +1,4 @@
-﻿namespace Kujira.Api.Requests;
+﻿namespace Kujira.Gui.Api.Requests;
 
 public class OfferRequest
 {
@@ -18,4 +18,5 @@ public class OfferRequest
     public string CompanyName { get; set; }
     public string City { get; set; }
 
+    public List<ServiceRequestRequest> ServiceRequests { get; set; } = new List<ServiceRequestRequest>();
 }

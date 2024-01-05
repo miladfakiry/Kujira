@@ -3,7 +3,7 @@ using Kujira.Gui.Api.Requests;
 using Kujira.Gui.Api.Response;
 using RestEase;
 
-namespace Kujira.Api;
+namespace Kujira.Gui.Api;
 
 public interface IKujiraBackendApi
 {
@@ -76,4 +76,19 @@ public interface IKujiraBackendApi
 
     [Delete("/api/Offer/{id}")]
     Task DeleteOffer([Path] Guid id);
+
+    [Post("/api/ServiceRequest/SendRequest")]
+    Task SendRequest([Body] ServiceRequestRequest serviceRequestRequest);
+
+    [Post("/api/ServiceRequest/AcceptRequest/{requestId}")]
+    Task AcceptRequest([Path] Guid requestId);
+
+    [Post("/api/ServiceRequest/RejectRequest/{requestId}")]
+    Task RejectRequest([Path] Guid requestId);
+
+    [Get("/api/ServiceRequest/User/{userId}")]
+    Task<IEnumerable<ServiceRequestRequest>> GetServiceRequestsForUser([Path] Guid userId);
+
+   [Get("/api/ServiceRequest/Offer/{offerId}")]
+    Task<IEnumerable<ServiceRequestRequest>> GetServiceRequestsForOffer([Path] Guid offerId);
 }

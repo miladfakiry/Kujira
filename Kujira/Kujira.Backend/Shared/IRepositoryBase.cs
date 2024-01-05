@@ -8,9 +8,10 @@ public interface IRepositoryBase<T> where T : class
 
     T? Get(Guid id);
 
+    void Create(T dbItem);
+
     void Update(T dbItem);
 
     void Delete(Guid id);
 
-    void Create(T dbItem);
 }

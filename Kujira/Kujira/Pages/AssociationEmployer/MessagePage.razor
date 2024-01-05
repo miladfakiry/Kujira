@@ -1,0 +1,95 @@
+﻿@page "/request-list"
+@using MudBlazor
+@using Kujira.Gui.Api
+@using Kujira.Gui.Api.Requests
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IKujiraBackendApi KujiraBackendApi
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Anfragenübersicht</PageTitle>
+
+<h1>Anfragen</h1>
+
+@if (!_dataLoaded)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudDataGrid Items="@_serviceRequests" Striped="true" Bordered="true" Hover="true">
+        <Columns>
+            <PropertyColumn Property="x => x.RequesterFirstName + x.RequesterLastName" Title="Anfrage von" />
+            <PropertyColumn Property="x => x.RequesterEmail" Title="E-Mail" />
+            <PropertyColumn Property="x => x.RequesterPhoneNumber" Title="Telefonnumer" />
+            <PropertyColumn Property="x => x.Message" Title="Nachricht" />
+            <TemplateColumn T="ServiceRequestRequest" Title="Aktionen">
+                <CellTemplate>
+                    <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" OnClick="@(() => AcceptRequest(context.Item.RequestId))">Annehmen</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" OnClick="@(() => RejectRequest(context.Item.RequestId))">Ablehnen</MudButton>
+                </CellTemplate>
+            </TemplateColumn>
+
+        </Columns>
+    </MudDataGrid>
+}
+@* else
+{
+    <MudText>Keine Anfragen vorhanden.</MudText>
+} *@
+
+@code {
+    private List<ServiceRequestRequest>? _serviceRequests;
+    private bool _dataLoaded = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await LoadRequestsAsync();
+            _dataLoaded = true;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Es ist ein Problem beim LoadRequestAsync aufgetreten, hier ist die Exception:{e}");
+            _dataLoaded = true;
+            throw;
+        }
+    }
+
+    private async Task LoadRequestsAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var userIdClaim = user.FindFirst("UserId");
+            if (userIdClaim != null)
+            {
+                var userId = new Guid(userIdClaim.Value);
+                _serviceRequests = (await KujiraBackendApi.GetServiceRequestsForUser(userId)).ToList();
+            }
+            else
+            {
+                Console.WriteLine("UserId-Claim nicht gefunden.");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Benutzer nicht authentifiziert.");
+        }
+    }
+
+
+    private async Task AcceptRequest(Guid requestId)
+    {
+        await KujiraBackendApi.AcceptRequest(requestId);
+        await LoadRequestsAsync();
+    }
+
+    private async Task RejectRequest(Guid requestId)
+    {
+        await KujiraBackendApi.RejectRequest(requestId);
+        await LoadRequestsAsync();
+    }
+}

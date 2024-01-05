@@ -2,6 +2,8 @@
 @using MudBlazor
 @using Kujira.Api
 @using System.ComponentModel.DataAnnotations
+@using Kujira.Gui.Api
+@using Newtonsoft.Json
 @inject IKujiraBackendApi KujiraBackendApi
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -73,7 +75,10 @@
 
     private async Task SaveCompany()
     {
+        Console.WriteLine($"Senden der Firma: {JsonConvert.SerializeObject(company)}");
         company.CompanyTypeId = selectedCompanyType.Id;
+        company.AddressId = company.AddressId;
+        // company.ZipId = company.ZipId;
         await KujiraBackendApi.UpdateCompany(company.Id, company);
         Snackbar.Add("Verwaltung erfolgreich aktualisiert", Severity.Success);
         MudDialog.Close(DialogResult.Ok(true));

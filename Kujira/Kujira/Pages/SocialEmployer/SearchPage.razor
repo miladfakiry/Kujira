@@ -2,10 +2,13 @@
 @using Kujira.Api.Requests
 @using MudBlazor
 @using Kujira.Api
+@using Kujira.Gui.Api
+@using Kujira.Gui.Api.Requests
 @using Newtonsoft.Json
 @inject HttpClient HttpClient
 @inject IJSRuntime JsRuntime
 @inject IKujiraBackendApi KujiraBackendApi
+@inject IDialogService DialogService
 
 <PageTitle>Nach Plätzen suchen</PageTitle>
 
@@ -81,7 +84,8 @@ else
                 </div>
             </MudCardContent>
             <MudCardActions>
-                    <MudButton Variant="Variant.Filled" Size="Size.Small" OnClick="@(() => SendRequest(context.Item))" Color="Color.Info">Anfrage senden</MudButton>
+                <MudButton Variant="Variant.Filled" Size="Size.Small" OnClick="@(() => OpenRequestDialog(context.Item))" Color="Color.Info">Anfragen</MudButton>
+
 
             </MudCardActions>
         </MudCard>
@@ -172,12 +176,32 @@ else
         }
     }
 
-    private void SendRequest(OfferRequest offer)
+    private async void SendRequest(OfferRequest offer)
     {
-        var subject = Uri.EscapeDataString($"Anfrage für Platzangebot: {offer.Id}");
-        var body = Uri.EscapeDataString($"Ich interessiere mich für das Angebot mit der ID {offer.Id}.\n\nDetails des Angebotes:\n- Verfügbare Plätze: {offer.AvailablePlaces}\n- Ort: {offer.City}\n- Langzeitpflege: {(offer.LongTermFamilyCare ? "Ja" : "Nein")}\n- Krisenintervention: {(offer.CrisisIntervention ? "Ja" : "Nein")}\n- Entlastungsangebot: {(offer.ReliefOffer ? "Ja" : "Nein")}\n\nBitte senden Sie mir weitere Informationen zu diesem Angebot.");
+        // var subject = Uri.EscapeDataString($"Anfrage für Platzangebot: {offer.Id}");
+        // var body = Uri.EscapeDataString($"Ich interessiere mich für das Angebot mit der ID {offer.Id}.\n\nDetails des Angebotes:\n- Verfügbare Plätze: {offer.AvailablePlaces}\n- Ort: {offer.City}\n- Langzeitpflege: {(offer.LongTermFamilyCare ? "Ja" : "Nein")}\n- Krisenintervention: {(offer.CrisisIntervention ? "Ja" : "Nein")}\n- Entlastungsangebot: {(offer.ReliefOffer ? "Ja" : "Nein")}\n\nBitte senden Sie mir weitere Informationen zu diesem Angebot.");
 
-        var mailtoUrl = $"mailto:{offer.EMailAddress}?subject={subject}&body={body}";
-        JsRuntime.InvokeVoidAsync("open", mailtoUrl);
+        // var mailtoUrl = $"mailto:{offer.EMailAddress}?subject={subject}&body={body}";
+        // JsRuntime.InvokeVoidAsync("open", mailtoUrl);
+
+        try
+        {
+            await HttpClient.PostAsync($"api/Offer/SendRequest/{offer.Id}", null);
+            // Erfolgsmeldung anzeigen
+        }
+        catch (Exception ex)
+        {
+            // Fehlermeldung anzeigen
+        }
+    }
+
+    private void OpenRequestDialog(OfferRequest offer)
+    {
+        var parameters = new DialogParameters
+        {
+            { "Offer", offer }
+        };
+
+        DialogService.Show<RequestDialog>("Anfrage senden", parameters);
     }
 }

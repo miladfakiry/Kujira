@@ -45,10 +45,6 @@ public class CompanyDto
     [JsonProperty("addStreetNumber")]
     public string StreetNumber { get; set; }
 
-    [JsonPropertyName("zipId")]
-    [JsonProperty("zipId")]
-    public Guid Zip { get; set; }
-
     [JsonPropertyName("zipCode")]
     [JsonProperty("zipCode")]
     public string ZipCode { get; set; }

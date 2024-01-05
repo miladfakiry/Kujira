@@ -54,7 +54,7 @@ public class AuthController : ControllerBase
                 ValidateAudience = true,
                 ValidAudience = _jwtSettings.Audience,
                 ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero //Token-Lebensdauer
+                ClockSkew = TimeSpan.Zero
             };
 
             tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);

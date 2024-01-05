@@ -27,6 +27,7 @@ public class KujiraContext : DbContext
     public virtual DbSet<Role> Roles { get; set; }
     public virtual DbSet<UserRole> UserRoles { get; set; }
     public virtual DbSet<Login> Logins { get; set; }
+    public virtual DbSet<ServiceRequest> ServiceRequests { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -151,8 +152,19 @@ public class KujiraContext : DbContext
             requestEntity.HasOne(r => r.User).WithMany(u => u.Requests).HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Restrict);
         });
 
-        // Address configuration
-        modelBuilder.Entity<Address>(addressEntity =>
+
+        modelBuilder.Entity<ServiceRequest>(entity =>
+        {
+            entity.HasKey(e => e.RequestId);
+            entity.HasOne(e => e.Offer).WithMany().HasForeignKey(e => e.OfferId);
+            entity.HasOne(e => e.FromUser).WithMany().HasForeignKey(e => e.FromUserId);
+            entity.HasOne(e => e.ToUser).WithMany().HasForeignKey(e => e.ToUserId);
+            // Weitere Konfigurationen nach Bedarf
+        });
+
+
+    // Address configuration
+    modelBuilder.Entity<Address>(addressEntity =>
         {
             addressEntity.ToTable("Addresses", "public");
             addressEntity.HasKey(a => a.Id).HasName("PK_AddressID");

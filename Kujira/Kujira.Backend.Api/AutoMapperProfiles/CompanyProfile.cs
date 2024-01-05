@@ -16,6 +16,7 @@ public class CompanyProfile : Profile
             .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
             .ForMember(dest => dest.WebsiteAddress, opt => opt.MapFrom(src => src.WebsiteAddress))
             .ForMember(dest => dest.Address, opt => opt.MapFrom((src, dest) => CreateOrUpdateAddress(src, dest)))
+            .ForMember(dest => dest.AddressId, opt => opt.MapFrom(src => src.AddressId))
             .ForMember(dest => dest.CompanyType, opt => opt.Ignore());
 
         // Mapping von Company zu CompanyDto

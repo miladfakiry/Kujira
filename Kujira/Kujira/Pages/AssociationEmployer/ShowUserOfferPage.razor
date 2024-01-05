@@ -1,8 +1,8 @@
 ﻿@page "/showUserOffer"
-@using Kujira.Api.Requests
+@using Kujira.Gui.Api.Requests
 @using Kujira.Gui.Services
 @using MudBlazor
-@using Kujira.Api
+@using Kujira.Gui.Api
 @inject IKujiraBackendApi KujiraBackendApi
 @inject IDialogService DialogService
 @inject AuthenticationService AuthService
@@ -13,7 +13,7 @@
 </div>
 @if (!_dataLoaded)
 {
-    <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true" />
+    <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true"/>
 }
 else
 {
@@ -23,80 +23,113 @@ else
                  SortMode="@SortMode.Multiple"
                  Groupable="false"
                  ReadOnly="@_readOnly"
-                 StartedEditingItem="@startedEditingCallback"
-                 CanceledEditingItem="@canceledEditingCallback"
-                 CommittedItemChanges="@committedChangesCallback"
+                 StartedEditingItem="@_startedEditingCallback"
+                 CanceledEditingItem="@_canceledEditingCallback"
+                 CommittedItemChanges="@_committedChangesCallback"
                  Bordered="false"
                  Dense="false">
         <Columns>
-            <PropertyColumn Property="x => x.Id" Title="Id" Filterable="false" />
-            <PropertyColumn Property="x => x.AvailablePlaces" Title="Verfügbare Plätze" />
+            <HierarchyColumn T="OfferRequest"/>
+            <PropertyColumn Property="x => x.Id" Title="Id" Filterable="false"/>
+            <PropertyColumn Property="x => x.AvailablePlaces" Title="Verfügbare Plätze"/>
             <TemplateColumn T="OfferRequest" Title="Langzeitpflege">
                 <CellTemplate>
-                    <MudCheckBox Checked="@context.Item.LongTermFamilyCare" Disabled />
-                 </CellTemplate>
-             </TemplateColumn>
-             <TemplateColumn T="OfferRequest" Title="Krisenintervention">
-                 <CellTemplate>
-                     <MudCheckBox Checked="@context.Item.CrisisIntervention" Disabled />
-                 </CellTemplate>
-             </TemplateColumn>
-             <TemplateColumn T="OfferRequest" Title="Entlastungsangebot">
-                 <CellTemplate>
-                     <MudCheckBox Checked="@context.Item.ReliefOffer" Disabled />
-                 </CellTemplate>
-             </TemplateColumn>
-             <PropertyColumn Property="x => x.CurrentlyPlacedFosterChildren" Title="Aktuelle Pflegekinder" />
-             <PropertyColumn Property="x => x.BiologicalChildren" Title="Biologische Kinder">
-                 <FilterTemplate>
-                     <MudIconButton OnClick="@OpenFilter" Icon="@_icon" Size="@Size.Small" />
-                     <MudOverlay Visible="@_filterOpen" OnClick="@(() => _filterOpen = false)" />
-                     <MudPopover Open="@_filterOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter"
-                                 Style="width:150px">
-                         <MudStack Spacing="0">
-                             <MudStack Row="true">
-                                 <MudButton OnClick="@(() => ClearFilterAsync(context))">Clear</MudButton>
-                                 <MudButton Color="@Color.Primary" OnClick="@(() => ApplyFilterAsync(context))">Filter</MudButton>
-                             </MudStack>
-                         </MudStack>
-                     </MudPopover>
-                 </FilterTemplate>
-             </PropertyColumn>
-             <PropertyColumn Property="x => x.AdditionalNote" Title="Zusätzliche Informationen" />
+                    <MudCheckBox Checked="@context.Item.LongTermFamilyCare" Disabled/>
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn T="OfferRequest" Title="Krisenintervention">
+                <CellTemplate>
+                    <MudCheckBox Checked="@context.Item.CrisisIntervention" Disabled/>
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn T="OfferRequest" Title="Entlastungsangebot">
+                <CellTemplate>
+                    <MudCheckBox Checked="@context.Item.ReliefOffer" Disabled/>
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="x => x.CurrentlyPlacedFosterChildren" Title="Aktuelle Pflegekinder"/>
+            <PropertyColumn Property="x => x.BiologicalChildren" Title="Biologische Kinder">
+                <FilterTemplate>
+                    <MudIconButton OnClick="@OpenFilter" Icon="@_icon" Size="@Size.Small"/>
+                    <MudOverlay Visible="@_filterOpen" OnClick="@(() => _filterOpen = false)"/>
+                    <MudPopover Open="@_filterOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter"
+                                Style="width:150px">
+                        <MudStack Spacing="0">
+                            <MudStack Row="true">
+                                <MudButton OnClick="@(() => ClearFilterAsync(context))">Clear</MudButton>
+                                <MudButton Color="@Color.Primary" OnClick="@(() => ApplyFilterAsync(context))">Filter</MudButton>
+                            </MudStack>
+                        </MudStack>
+                    </MudPopover>
+                </FilterTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.AdditionalNote" Title="Zusätzliche Informationen"/>
 
-             <TemplateColumn Hidden="@_isCellEditMode">
-                 <CellTemplate>
-                     <MudIconButton Color="Color.Primary" Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => StartedEditingItem(context.Item))" />
-                     <MudIconButton Color="Color.Error" Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => DeleteOffer(context.Item))" />
-                 </CellTemplate>
-             </TemplateColumn>
-         </Columns>
+            <TemplateColumn Hidden="@_isCellEditMode">
+                <CellTemplate>
+                    <MudIconButton Color="Color.Primary" Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => StartedEditingItem(context.Item))"/>
+                    <MudIconButton Color="Color.Error" Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => DeleteOffer(context.Item))"/>
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+        <ChildRowContent>
+            @if (context.Item.ServiceRequests.Any())
+            {
+                foreach (var request in context.Item.ServiceRequests)
+                {
+                    <MudCard>
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6">Anfrage von:</MudText>
+                            <MudText> @request.RequesterFirstName @request.RequesterLastName </MudText>
+                            <MudText>
+                                <a href="mailto:@request.RequesterEmail">@request.RequesterEmail</a>
+                            </MudText>
+                            <MudText>
+                                <a href="tel:@request.RequesterPhoneNumber">@request.RequesterPhoneNumber</a>
+                            </MudText>
+                            <MudText Typo="Typo.h6">Mitteilung:</MudText>
+                            <MudText>@request.Message</MudText>
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudCardActions>
+                                <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" OnClick="@(() => AcceptRequest(request.RequestId, context.Item.Id))">Annehmen</MudButton>
+                                <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(() => RejectRequest(request.RequestId, context.Item.Id))">Ablehnen</MudButton>
+                            </MudCardActions>
 
-         <PagerContent>
-             <MudDataGridPager T="OfferRequest" />
-         </PagerContent>
+                        </MudCardActions>
+                    </MudCard>
+                }
+            }
+            else
+            {
+                <MudText>Keine Anfragen vorhanden.</MudText>
+            }
+        </ChildRowContent>
 
-     </MudDataGrid>
+        <PagerContent>
+            <MudDataGridPager T="OfferRequest"/>
+        </PagerContent>
 
+    </MudDataGrid>
 }
 
 
 @code {
     private IEnumerable<OfferRequest> _offers = new List<OfferRequest>();
-    private bool _dataLoaded = false;
+    private bool _dataLoaded;
     private bool _readOnly;
     private bool _hover;
 
     private bool _isIdReadOnly = true;
-    private bool isEditing;
+    private bool _isEditing;
 
     HashSet<OfferRequest> _selectedItems = new();
     HashSet<OfferRequest> _filterItems = new();
     FilterDefinition<OfferRequest> _filterDefinition;
 
-    private EventCallback<OfferRequest> startedEditingCallback;
-    private EventCallback<OfferRequest> canceledEditingCallback;
-    private EventCallback<OfferRequest> committedChangesCallback;
+    private EventCallback<OfferRequest> _startedEditingCallback;
+    private EventCallback<OfferRequest> _canceledEditingCallback;
+    private EventCallback<OfferRequest> _committedChangesCallback;
 
     private bool _isCellEditMode;
     bool _selectAll = true;
@@ -106,19 +139,21 @@ else
     protected override async Task OnInitializedAsync()
     {
         _dataLoaded = false;
-        startedEditingCallback = EventCallback.Factory.Create<OfferRequest>(this, StartedEditingItem);
-        canceledEditingCallback = EventCallback.Factory.Create<OfferRequest>(this, CanceledEditingItem);
-        committedChangesCallback = EventCallback.Factory.Create<OfferRequest>(this, CommittedItemChanges);
+        _startedEditingCallback = EventCallback.Factory.Create<OfferRequest>(this, StartedEditingItem);
+        _canceledEditingCallback = EventCallback.Factory.Create<OfferRequest>(this, CanceledEditingItem);
+        _committedChangesCallback = EventCallback.Factory.Create<OfferRequest>(this, CommittedItemChanges);
 
         try
         {
             var userId = await AuthService.GetLoggedInUserIdAsync();
-            _offers = await KujiraBackendApi.GetOfferByUserId(userId);
+            var offers = await KujiraBackendApi.GetOfferByUserId(userId);
 
-            foreach (var offer in _offers)
+            foreach (var offer in offers)
             {
-                Console.WriteLine($"Offer ID: {offer.Id}, LongTermFamilyCare: {offer.LongTermFamilyCare}, CrisisIntervention: {offer.CrisisIntervention}, ReliefOffer: {offer.ReliefOffer}");
+                offer.ServiceRequests = (await KujiraBackendApi.GetServiceRequestsForOffer(offer.Id)).ToList();
             }
+
+            _offers = offers;
             _dataLoaded = true;
             StateHasChanged();
         }
@@ -238,4 +273,27 @@ else
         }
     }
 
+    private async Task AcceptRequest(Guid requestId, Guid offerId)
+    {
+        await KujiraBackendApi.AcceptRequest(requestId);
+        await RefreshOfferRequests(offerId);
+        Snackbar.Add("Anfrage angenommen", Severity.Success);
+    }
+
+    private async Task RejectRequest(Guid requestId, Guid offerId)
+    {
+        await KujiraBackendApi.RejectRequest(requestId);
+        await RefreshOfferRequests(offerId);
+        Snackbar.Add("Anfrage abgelehnt", Severity.Error);
+    }
+
+    private async Task RefreshOfferRequests(Guid offerId)
+    {
+        var updatedRequests = (await KujiraBackendApi.GetServiceRequestsForOffer(offerId)).ToList();
+        var offerToUpdate = _offers.FirstOrDefault(o => o.Id == offerId);
+        if (offerToUpdate != null)
+        {
+            offerToUpdate.ServiceRequests = updatedRequests;
+        }
+    }
 }

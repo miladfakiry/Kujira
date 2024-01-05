@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Kujira.Api.DTOs;
 using Kujira.Backend.Models;
-using Kujira.Backend.Repositories;
 using Kujira.Backend.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,17 +10,19 @@ namespace Kujira.Api.Controllers;
 [Route("api/[controller]")]
 public class OfferController : ControllerBase
 {
+    private readonly ILogger<OfferController> _logger;
     private readonly IMapper _mapper;
     private readonly IOfferRepository _offerRepository;
+    private readonly IServiceRequestRepository _serviceRequestRepository;
     private readonly IZipRepository _zipRepository;
-    private readonly ILogger<OfferController> _logger;
 
-    public OfferController(IOfferRepository offerRepository, IZipRepository zipRepository, IMapper mapper, ILogger<OfferController> logger)
+    public OfferController(IOfferRepository offerRepository, IZipRepository zipRepository, IMapper mapper, ILogger<OfferController> logger, IServiceRequestRepository serviceRequestRepository)
     {
         _offerRepository = offerRepository;
         _zipRepository = zipRepository;
         _mapper = mapper;
         _logger = logger;
+        _serviceRequestRepository = serviceRequestRepository;
     }
 
     [HttpPost]
@@ -29,7 +30,6 @@ public class OfferController : ControllerBase
     {
         try
         {
-
             var offer = _mapper.Map<Offer>(offerDto);
             offer.ZipId = offerDto.ZipId;
 
@@ -42,6 +42,7 @@ public class OfferController : ControllerBase
             return StatusCode(500, ex.Message);
         }
     }
+
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetOfferById(Guid id)
@@ -71,7 +72,6 @@ public class OfferController : ControllerBase
             return StatusCode(500, ex.Message);
         }
     }
-
 
 
     [HttpGet]

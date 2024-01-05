@@ -12,6 +12,11 @@ public class UserRepository : RepositoryBase<User>, IUserRepository
         DbContext = dbContext;
     }
 
+    public IQueryable<User> GetQueryable()
+    {
+        return DbContext.Users.AsQueryable();
+    }
+
     public new IEnumerable<User> GetAll()
     {
         return DbContext.Users
@@ -24,5 +29,12 @@ public class UserRepository : RepositoryBase<User>, IUserRepository
         return DbContext.Users
                          .Include(u => u.PersonalInformation)
                          .FirstOrDefault(u => u.Id == id);
+    }
+
+    public async Task<User?> GetByIdAsync(Guid id)
+    {
+        return await DbContext.Users
+                              .Include(u => u.PersonalInformation)
+                              .FirstOrDefaultAsync(u => u.Id == id);
     }
 }
