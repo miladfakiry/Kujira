@@ -1,7 +1,7 @@
 ﻿@page "/adminUser"
 @using Kujira.Api.Requests
-@using MudBlazor
 @using Kujira.Gui.Api
+@using MudBlazor
 @inject IDialogService DialogService
 @inject IKujiraBackendApi KujiraBackendApi
 
@@ -15,71 +15,70 @@
 
 @if (!_dataLoaded)
 {
-    <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true" />
+    <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true"/>
 }
 else
 {
-<MudDataGrid Items="@_users"
-             Hover="@_hover"
-             Filterable="false"
-             SortMode="@SortMode.Multiple"
-             Groupable="true"
-             ReadOnly="@_readOnly"
-             StartedEditingItem="@startedEditingCallback"
-             CanceledEditingItem="@canceledEditingCallback"
-             CommittedItemChanges="@committedChangesCallback"
-             Bordered="false"
-             Dense="false">
-    <Columns>
-        <PropertyColumn Property="x => x.Id" Title="Id" Filterable="false"/>
+    <MudDataGrid Items="@_users"
+                 Hover="@_hover"
+                 Filterable="false"
+                 SortMode="@SortMode.Multiple"
+                 Groupable="true"
+                 ReadOnly="@_readOnly"
+                 StartedEditingItem="@startedEditingCallback"
+                 CanceledEditingItem="@canceledEditingCallback"
+                 CommittedItemChanges="@committedChangesCallback"
+                 Bordered="false"
+                 Dense="false">
+        <Columns>
+            <PropertyColumn Property="x => x.Id" Title="Id" Filterable="false"/>
 
-        <PropertyColumn Property="x => x.FirstName" Title="Vorname"/>
-        <PropertyColumn Property="x => x.LastName" Title="Nachname">
+            <PropertyColumn Property="x => x.FirstName" Title="Vorname"/>
+            <PropertyColumn Property="x => x.LastName" Title="Nachname">
 
-            <FilterTemplate>
-                <MudIconButton OnClick="@OpenFilter" Icon="@_icon" Size="@Size.Small"/>
-                <MudOverlay Visible="@_filterOpen" OnClick="@(() => _filterOpen = false)"/>
-                <MudPopover Open="@_filterOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter"
-                            Style="width:150px">
-                    <MudStack Spacing="0">
-                        <MudStack Row="true">
-                            <MudButton OnClick="@(() => ClearFilterAsync(context))">Clear</MudButton>
-                            <MudButton Color="@Color.Primary" OnClick="@(() => ApplyFilterAsync(context))">Filter</MudButton>
+                <FilterTemplate>
+                    <MudIconButton OnClick="@OpenFilter" Icon="@_icon" Size="@Size.Small"/>
+                    <MudOverlay Visible="@_filterOpen" OnClick="@(() => _filterOpen = false)"/>
+                    <MudPopover Open="@_filterOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter"
+                                Style="width:150px">
+                        <MudStack Spacing="0">
+                            <MudStack Row="true">
+                                <MudButton OnClick="@(() => ClearFilterAsync(context))">Clear</MudButton>
+                                <MudButton Color="@Color.Primary" OnClick="@(() => ApplyFilterAsync(context))">Filter</MudButton>
+                            </MudStack>
                         </MudStack>
-                    </MudStack>
-                </MudPopover>
-            </FilterTemplate>
+                    </MudPopover>
+                </FilterTemplate>
 
-        </PropertyColumn>
-        <PropertyColumn Property="x => x.DateOfBirth" Title="Geburtsdatum" IsEditable="true" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" />
-        <PropertyColumn Property="x => x.PhoneNumber" Title="Telefonnummer" Required="false"/>
-        <PropertyColumn Property="x => x.CreateDate" Title="Erstellt am:"/>
-        <TemplateColumn T="UserRequest" Title="Inaktiv">
-            <CellTemplate>
-                    <MudCheckBox Checked="@context.Item.IsInactive" Title="Inaktiv" IsEditable="true" Filterable="true" />
-            </CellTemplate>
-        </TemplateColumn>
-       @*  <PropertyColumn Property="x => x.IsInactive" Title="Inaktiv" IsEditable="true" Filterable="true"/> *@
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.DateOfBirth" Title="Geburtsdatum" Format="dd.MM.yyyy" IsEditable="true"/>
+            <PropertyColumn Property="x => x.PhoneNumber" Title="Telefonnummer" Required="false"/>
+            <PropertyColumn Property="x => x.CreateDate" Title="Erstellt am:"/>
+            <TemplateColumn T="UserRequest" Title="Inaktiv">
+                <CellTemplate>
+                    <MudCheckBox Checked="@context.Item.IsInactive" Title="Inaktiv" IsEditable="false" Filterable="true" Disabled/>
+                </CellTemplate>
+            </TemplateColumn>
 
-        <TemplateColumn Hidden="@_isCellEditMode">
-            <CellTemplate>
-                <MudIconButton Color="Color.Primary" Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => StartedEditingItem(context.Item))"/>
-                <MudIconButton Color="Color.Error" Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => DeleteUser(context.Item))"/>
-            </CellTemplate>
-        </TemplateColumn>
+            <TemplateColumn Hidden="@_isCellEditMode">
+                <CellTemplate>
+                    <MudIconButton Color="Color.Primary" Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => StartedEditingItem(context.Item))"/>
+                    <MudIconButton Color="Color.Error" Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => DeleteUser(context.Item))"/>
+                </CellTemplate>
+            </TemplateColumn>
 
-    </Columns>
+        </Columns>
 
-    <PagerContent>
-        <MudDataGridPager T="UserRequest"/>
-    </PagerContent>
+        <PagerContent>
+            <MudDataGridPager T="UserRequest"/>
+        </PagerContent>
 
-</MudDataGrid>
+    </MudDataGrid>
 }
 
 
 @code {
-    private bool _dataLoaded = false;
+    private bool _dataLoaded;
     private IEnumerable<UserRequest> _users = new List<UserRequest>();
     private UserRequest _selectedUserDto;
     private Guid _id;
@@ -223,8 +222,7 @@ else
             var options = new DialogOptions
             {
                 MaxWidth = MaxWidth.ExtraSmall,
-                FullWidth = true,
-
+                FullWidth = true
             };
             var parameters = new DialogParameters
             {

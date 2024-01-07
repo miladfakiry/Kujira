@@ -9,6 +9,7 @@ public class ServiceRequest
     public Guid FromUserId { get; set; }
     public Guid ToUserId { get; set; }
     public string Message { get; set; }
+    public string? ResponseMessage { get; set; }
     public string FromUserEMail { get; set; }
     public RequestStatus RequestStatus { get; set; }
     public DateTime CreatedAt { get; set; }

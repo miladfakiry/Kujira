@@ -1,0 +1,47 @@
+﻿@page "/associationDashboard"
+@inject IJSRuntime JSRuntime
+@using Kujira.Gui.Services
+@using Kujira.Gui.Shared
+@inject AuthenticationService AuthService
+@using MudBlazor
+
+<PageTitle>Dashboard</PageTitle>
+
+<h1>Willkommen @username</h1>
+
+<MudGrid>
+    <MudItem xs="4">
+        <InspirationalQuote/>
+    </MudItem>
+    <MudItem xs="4">
+        <DateTimeDisplay/>
+    </MudItem>
+    <MudItem xs="4">
+        <WeatherDisplay/>
+    </MudItem>
+    <MudItem xs="12">
+    </MudItem>
+    <MudItem xs="6">
+        <MudPaper Class="d-flex align-center justify-center mud-width-full py-8">
+            <ToDoDisplay/>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private string username;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "authToken");
+        if (!string.IsNullOrEmpty(token))
+        {
+            var claimsIdentity = await AuthService.GetClaimsIdentityFromToken(token);
+            var nameClaim = claimsIdentity.FindFirst("Name");
+            if (nameClaim != null)
+            {
+                username = nameClaim.Value;
+            }
+        }
+    }
+}

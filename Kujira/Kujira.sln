@@ -12,7 +12,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kujira.Backend", "Kujira.Ba
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kujira.Api", "Kujira.Backend.Api\Kujira.Api.csproj", "{2B3D935B-28D2-42BB-9DF0-9F377424E026}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kujira.Backend.Tests", "Kujira.Backend.Tests\Kujira.Backend.Tests.csproj", "{C89D8332-7C8C-4FF8-A405-217D70318730}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kujira.Backend.Tests", "Kujira.Backend.Tests\Kujira.Backend.Tests.csproj", "{C89D8332-7C8C-4FF8-A405-217D70318730}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kujira.Api.Tests", "Kujira.Api.Tests\Kujira.Api.Tests.csproj", "{07F37B3F-E62A-4A1D-BCF8-3A7C2BDCEB3E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,6 +38,10 @@ Global
 		{C89D8332-7C8C-4FF8-A405-217D70318730}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C89D8332-7C8C-4FF8-A405-217D70318730}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C89D8332-7C8C-4FF8-A405-217D70318730}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07F37B3F-E62A-4A1D-BCF8-3A7C2BDCEB3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07F37B3F-E62A-4A1D-BCF8-3A7C2BDCEB3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07F37B3F-E62A-4A1D-BCF8-3A7C2BDCEB3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07F37B3F-E62A-4A1D-BCF8-3A7C2BDCEB3E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -24,6 +24,27 @@ public class ServiceRequestController : ControllerBase
         _logger = logger;
     }
 
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetServiceRequestById(Guid id)
+    {
+        try
+        {
+            var serviceRequest = await _serviceRequestRepository.GetByIdAsync(id);
+            if (serviceRequest == null)
+            {
+                return NotFound();
+            }
+
+            var dto = _mapper.Map<ServiceRequestDto>(serviceRequest);
+            return Ok(dto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error in GetServiceRequestById: {ex.Message}");
+            return StatusCode(500, ex.Message);
+        }
+    }
+
     // GET: api/ServiceRequest/User/{userId}
     [HttpGet("User/{userId}")]
     public async Task<IActionResult> GetServiceRequestsForUser(Guid userId)
@@ -112,6 +133,26 @@ public class ServiceRequestController : ControllerBase
         }
     }
 
+    [HttpPost("SendResponse/{requestId}")]
+    public async Task<IActionResult> SendResponse(Guid requestId, [FromBody] ServiceRequestDto responseDto)
+    {
+        var request = await _serviceRequestRepository.GetByIdAsync(requestId);
+        if (request == null)
+        {
+            return NotFound();
+        }
+
+        request.ResponseMessage = responseDto.ResponseMessage;
+        request.UpdatedAt = DateTime.UtcNow;
+
+        await _serviceRequestRepository.UpdateAsync(request);
+
+        return Ok();
+    }
+
+
+
+
     [HttpPost("AcceptRequest/{requestId}")]
     public async Task<IActionResult> AcceptRequest(Guid requestId)
     {
@@ -144,5 +185,12 @@ public class ServiceRequestController : ControllerBase
         await _serviceRequestRepository.UpdateAsync(request);
 
         return Ok();
+    }
+
+    [HttpGet("Exists/{userId}/{offerId}")]
+    public async Task<IActionResult> CheckIfRequestExists(Guid userId, Guid offerId)
+    {
+        var exists = await _serviceRequestRepository.CheckIfRequestExists(userId, offerId);
+        return Ok(exists);
     }
 }

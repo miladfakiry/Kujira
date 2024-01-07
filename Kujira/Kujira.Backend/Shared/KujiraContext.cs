@@ -159,7 +159,6 @@ public class KujiraContext : DbContext
             entity.HasOne(e => e.Offer).WithMany().HasForeignKey(e => e.OfferId);
             entity.HasOne(e => e.FromUser).WithMany().HasForeignKey(e => e.FromUserId);
             entity.HasOne(e => e.ToUser).WithMany().HasForeignKey(e => e.ToUserId);
-            // Weitere Konfigurationen nach Bedarf
         });
 
 

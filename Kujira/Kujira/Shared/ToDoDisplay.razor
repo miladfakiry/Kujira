@@ -1,0 +1,59 @@
+﻿@page "/todo"
+@using System.Collections.Generic
+@using MudBlazor
+
+<PageTitle>ToDo Liste</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12" sm="4">
+        <h2>Meine ToDo-Liste</h2>
+        <MudTextField @bind-Value="newTask" Placeholder="Neue Aufgabe hinzufügen..." />
+        <MudButton OnClick="AddTask" Color="Color.Primary">Hinzufügen</MudButton>
+    </MudItem>
+    <MudItem xs="12">
+        @if (tasks.Any())
+        {
+            <MudPaper Class="pa-0">
+                <MudList>
+                    @foreach (var task in tasks)
+                    {
+                        <MudListItem Class="py-1">
+                            <MudCheckBox @bind-Checked="task.IsDone" />
+                            <MudText Strikethrough="@task.IsDone" Class="ml-2">@task.Title</MudText>
+                            <MudIconButton Icon="Icons.Material.Outlined.Delete" Color="Color.Error" OnClick="@(() => RemoveTask(task))" Class="ml-auto"/>
+                        </MudListItem>
+                    }
+                </MudList>
+            </MudPaper>
+        }
+        else
+        {
+            <MudText>Keine Aufgaben vorhanden.</MudText>
+        }
+    </MudItem>
+</MudGrid>
+
+@code {
+    private string newTask;
+    private List<ToDoTask> tasks = new();
+
+    private void AddTask()
+    {
+        if (!string.IsNullOrWhiteSpace(newTask))
+        {
+            tasks.Add(new ToDoTask { Title = newTask });
+            newTask = "";
+        }
+    }
+
+    private void RemoveTask(ToDoTask task)
+    {
+        tasks.Remove(task);
+    }
+
+    private class ToDoTask
+    {
+        public string Title { get; set; }
+        public bool IsDone { get; set; }
+    }
+}

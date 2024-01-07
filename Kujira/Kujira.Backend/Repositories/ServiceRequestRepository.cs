@@ -23,7 +23,9 @@ public class ServiceRequestRepository : IServiceRequestRepository
 
     public async Task<IEnumerable<ServiceRequest>> GetServiceRequestsByUserIdAsync(Guid userId)
     {
-        return await _context.ServiceRequests.Where(r => r.ToUserId == userId).ToListAsync();
+        return await _context.ServiceRequests
+                             .Where(sr => sr.ToUserId == userId || sr.FromUserId == userId)
+                             .ToListAsync();
     }
 
     public async Task<ServiceRequest> GetByIdAsync(Guid requestId)
@@ -42,5 +44,10 @@ public class ServiceRequestRepository : IServiceRequestRepository
     {
         _context.ServiceRequests.Update(serviceRequest);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<bool> CheckIfRequestExists(Guid userId, Guid offerId)
+    {
+        return await _context.ServiceRequests.AnyAsync(sr => sr.FromUserId == userId && sr.OfferId == offerId);
     }
 }

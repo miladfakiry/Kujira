@@ -1,0 +1,47 @@
+﻿@page "/inspirational-quote"
+@using System
+@using MudBlazor
+
+<MudPaper Class="d-flex align-center justify-center mud-width-full py-8">
+    <div>
+        <h2 Color="Primary">Inspirierende Zitate</h2>
+       <MudDivider></MudDivider>
+        <h4>@currentQuote</h4>
+    </div>
+</MudPaper>
+
+@code {
+    private string[] quotes = new[]
+    {
+        "Der beste Weg, die Zukunft vorauszusagen, ist, sie zu erschaffen.",
+        "Erfolg hat drei Buchstaben: TUN!",
+        "Auch aus Steinen, die einem in den Weg gelegt werden, kann man Schönes bauen.",
+        "Motivation ist das, was dich starten lässt. Gewohnheit ist das, was dich weitermachen lässt.",
+        "Der einzige Weg, großartige Arbeit zu leisten, ist zu lieben, was man tut. – Steve Jobs",
+        "Erfolg ist keine endgültige Station, Scheitern ist nicht tödlich: Es zählt der Mut, weiterzumachen. – Winston Churchill",
+        "Das Geheimnis des Vorankommens besteht darin, den ersten Schritt zu tun. – Mark Twain",
+        "Der Schlüssel zum Erfolg ist, auf den eigenen Stil zu setzen, anstatt jemand anderes zu kopieren. – John F. Kennedy",
+        "Glaube an dich selbst und all das, was du bist. Erkenne, dass es etwas in dir gibt, das größer ist als jedes Hindernis. – Christian D. Larson",
+        "Unsere größte Schwäche liegt im Aufgeben. Der sicherste Weg zum Erfolg ist immer, es noch einmal zu versuchen. – Thomas A. Edison",
+        "Handeln ist die grundlegende Schlüssel zu jedem Erfolg. – Pablo Picasso",
+        "Der beste Zeitpunkt, einen Baum zu pflanzen, war vor zwanzig Jahren. Der zweitbeste Zeitpunkt ist jetzt. – Chinesisches Sprichwort",
+        "Es ist nicht die Stärke, sondern die Ausdauer, die zu größeren Erfolgen führt. – Samuel Johnson",
+        "Wenn du aufhörst, besser sein zu wollen, hörst du auf, gut zu sein. – Marie von Ebner-Eschenbach",
+        "Die Zukunft gehört denen, die an die Schönheit ihrer Träume glauben. – Eleanor Roosevelt"
+    };
+
+    private string currentQuote;
+
+    protected override void OnInitialized()
+    {
+        GenerateQuote();
+    }
+
+    private void GenerateQuote()
+    {
+        var random = new Random();
+        currentQuote = quotes[random.Next(quotes.Length)];
+    }
+}
+
+

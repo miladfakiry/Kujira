@@ -1,0 +1,44 @@
+﻿@page "/weather"
+@inject HttpClient Http
+@using Newtonsoft.Json.Linq
+@using MudBlazor
+
+<PageTitle>Wetter</PageTitle>
+
+@if (weatherData != null)
+{
+    <MudPaper Class="d-flex align-center justify-center mud-width-full py-8">
+        <div style="justify-content: space-evenly;">
+            <MudIcon Icon="@Icons.Material.Outlined.Cloud" Size="Size.Large" Style="justify-content:left"></MudIcon>
+        </div>
+        
+        <div>
+            <h2>Aktuelles Wetter: @weatherData["weather"][0]["main"].ToString()</h2>
+            <MudDivider></MudDivider>
+            <h4>Temperatur: @weatherData["main"]["temp"]°C</h4>
+        </div>
+    </MudPaper>
+}
+else
+{
+    <MudText>Lade Wetterdaten...</MudText>
+}
+
+@code {
+    private JObject weatherData;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadWeatherDataAsync();
+    }
+
+    private async Task LoadWeatherDataAsync()
+    {
+        var response = await Http.GetAsync($"https://api.openweathermap.org/data/2.5/weather?q=St.%20Gallen&appid=3987d5455addc0d5e541dca124e78a50&units=metric&lang=de");
+        if (response.IsSuccessStatusCode)
+        {
+            var json = await response.Content.ReadAsStringAsync();
+            weatherData = JObject.Parse(json);
+        }
+    }
+}

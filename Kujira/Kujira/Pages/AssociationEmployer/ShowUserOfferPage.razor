@@ -8,6 +8,7 @@
 @inject AuthenticationService AuthService
 @inject ISnackbar Snackbar
 
+
 <div class="d-flex justify-space-between align-items-center my-2">
     <h1>Meine Angebote</h1>
 </div>
@@ -27,7 +28,8 @@ else
                  CanceledEditingItem="@_canceledEditingCallback"
                  CommittedItemChanges="@_committedChangesCallback"
                  Bordered="false"
-                 Dense="false">
+                 Dense="false"
+                 RowStyleFunc="@((offer, index) => GetRowStyle(offer, index))">
         <Columns>
             <HierarchyColumn T="OfferRequest"/>
             <PropertyColumn Property="x => x.Id" Title="Id" Filterable="false"/>
@@ -91,11 +93,12 @@ else
                             <MudText>@request.Message</MudText>
                         </MudCardContent>
                         <MudCardActions>
-                            <MudCardActions>
-                                <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" OnClick="@(() => AcceptRequest(request.RequestId, context.Item.Id))">Annehmen</MudButton>
-                                <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(() => RejectRequest(request.RequestId, context.Item.Id))">Ablehnen</MudButton>
-                            </MudCardActions>
-
+                            <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" 
+                                       OnClick="@(() => AcceptRequest(request.RequestId, context.Item.Id))" 
+                                       Disabled="@(!string.IsNullOrEmpty(request.ResponseMessage))">Annehmen</MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" 
+                                       OnClick="@(() => RejectRequest(request.RequestId, context.Item.Id))" 
+                                       Disabled="@(!string.IsNullOrEmpty(request.ResponseMessage))">Ablehnen</MudButton>
                         </MudCardActions>
                     </MudCard>
                 }
@@ -275,17 +278,42 @@ else
 
     private async Task AcceptRequest(Guid requestId, Guid offerId)
     {
-        await KujiraBackendApi.AcceptRequest(requestId);
-        await RefreshOfferRequests(offerId);
-        Snackbar.Add("Anfrage angenommen", Severity.Success);
+        var parameters = new DialogParameters {{"RequestId", requestId}};
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true };
+        var dialog = DialogService.Show<AcceptRequestDialog>("Nachricht senden", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled && result.Data is string responseMessage)
+        {
+            // Aktualisieren des lokalen Anfragezustands
+            var requestToUpdate = _offers.SelectMany(o => o.ServiceRequests).FirstOrDefault(r => r.RequestId == requestId);
+            if (requestToUpdate != null)
+            {
+                requestToUpdate.ResponseMessage = responseMessage; // Annahme, dass die Nachricht die Antwort darstellt
+                StateHasChanged(); // Aktualisieren der UI
+            }
+        
+            await RefreshOfferRequests(offerId);
+        }
     }
 
     private async Task RejectRequest(Guid requestId, Guid offerId)
     {
-        await KujiraBackendApi.RejectRequest(requestId);
-        await RefreshOfferRequests(offerId);
-        Snackbar.Add("Anfrage abgelehnt", Severity.Error);
+        bool? result = await DialogService.ShowMessageBox(
+            "Anfrage ablehnen",
+            "Sind Sie sicher, dass Sie diese Anfrage ablehnen möchten?",
+            "Ablehnen",
+            cancelText: "Abbrechen"
+        );
+
+        if (result == true)
+        {
+            await KujiraBackendApi.RejectRequest(requestId);
+            await RefreshOfferRequests(offerId);
+            Snackbar.Add("Anfrage wurde abgelehnt", Severity.Success);
+        }
     }
+
 
     private async Task RefreshOfferRequests(Guid offerId)
     {
@@ -293,7 +321,32 @@ else
         var offerToUpdate = _offers.FirstOrDefault(o => o.Id == offerId);
         if (offerToUpdate != null)
         {
-            offerToUpdate.ServiceRequests = updatedRequests;
+            offerToUpdate.ServiceRequests = updatedRequests
+                                            .Where(r => GetRequestStatusDescription(r.RequestStatus) != "Abgelehnt")
+                                            .ToList();
+            StateHasChanged();
         }
     }
+
+
+    private string GetRowStyle(OfferRequest offer, int rowIndex)
+    {
+        if (offer.ServiceRequests.Any())
+        {
+            return "background-color: #eae9fc;";
+        }
+        return string.Empty;
+    }
+
+    private string GetRequestStatusDescription(int status)
+    {
+        return status switch
+        {
+            0 => "Ausstehend",
+            1 => "Abgelehnt",
+            2 => "Akzeptiert",
+            _ => "Unbekannt",
+        };
+    }
+
 }

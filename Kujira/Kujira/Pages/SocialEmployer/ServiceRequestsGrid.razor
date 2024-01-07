@@ -1,0 +1,82 @@
+﻿
+@using Kujira.Gui.Api.Requests
+@using MudBlazor
+@using Kujira.Gui.Api
+@using Kujira.Gui.Services
+@inject IKujiraBackendApi KujiraBackendApi
+@inject AuthenticationService AuthenticationService
+
+<PageTitle>Angefragte Angebote</PageTitle>
+
+@if (!_dataLoaded)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudDataGrid Items="@_serviceRequests"
+                 Hover="true"
+                 Filterable="false"
+                 SortMode="@SortMode.Single"
+                 Groupable="false"
+                 ReadOnly="true"
+                 Bordered="false"
+                 Dense="true">
+        <Columns>
+            <PropertyColumn Property="x => x.OfferId" Title="Angebot-ID" />
+            <PropertyColumn Property="x => x.Message" Title="versendete Nachricht" />
+            <TemplateColumn Title="Status">
+                <CellTemplate>
+                    <div style="color: @GetStatusColor(context.Item.RequestStatus)">
+                        @GetRequestStatusDescription(context.Item.RequestStatus)
+                    </div>
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="x => x.CreatedAt" Title="Angefragt am" Format="dd.MM.yyyy" />
+
+            <PropertyColumn Property="x => x.ResponseMessage" Title="erhaltene Nachricht" />
+        </Columns>
+
+        <PagerContent>
+            <MudDataGridPager T="ServiceRequestRequest" />
+        </PagerContent>
+    </MudDataGrid>
+}
+
+@code {
+    [Parameter] public Guid UserId { get; set; }
+    private bool _dataLoaded;
+    private List<ServiceRequestRequest> _serviceRequests = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = await AuthenticationService.GetLoggedInUserIdAsync();
+        if (userId != Guid.Empty)
+        {
+            _serviceRequests = (await KujiraBackendApi.GetServiceRequestsForUser(userId)).ToList();
+            _dataLoaded = true;
+        }
+    }
+
+    private string GetRequestStatusDescription(int status)
+    {
+        return status switch
+        {
+            0 => "Ausstehend",
+            1 => "Abgelehnt",
+            2 => "Akzeptiert",
+            _ => "Unbekannt",
+        };
+    }
+
+    private string GetStatusColor(int status)
+    {
+        return status switch
+        {
+            0 => "Orange",
+            1 => "OrangeRed",
+            2 => "ForestGreen",
+            _ => "gray",
+        };
+    }
+}

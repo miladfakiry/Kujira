@@ -3,7 +3,6 @@ using Kujira.Api.DTOs;
 using Kujira.Backend.Models;
 using Kujira.Backend.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
 namespace Kujira.Api.Controllers;
@@ -53,6 +52,7 @@ public class CompanyController : ControllerBase
         {
             return BadRequest("Zip-Code ist ungültig.");
         }
+
         var address = new Address(Guid.NewGuid(), companyDto.Street, companyDto.StreetNumber, zip);
         company.Address = address;
         _companyRepository.Create(company);
@@ -66,7 +66,6 @@ public class CompanyController : ControllerBase
     [HttpPut("{id}")]
     public IActionResult UpdateCompany(Guid id, CompanyDto companyDto)
     {
-
         Console.WriteLine($"Aktualisierung der Firma {id} mit den Daten: {JsonConvert.SerializeObject(companyDto)}");
 
         var company = _companyRepository.Get(id);

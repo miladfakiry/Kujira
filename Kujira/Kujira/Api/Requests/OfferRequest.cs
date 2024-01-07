@@ -19,4 +19,6 @@ public class OfferRequest
     public string City { get; set; }
 
     public List<ServiceRequestRequest> ServiceRequests { get; set; } = new List<ServiceRequestRequest>();
+
+    public bool IsRequested { get; set; }
 }

@@ -9,4 +9,5 @@ public interface IServiceRequestRepository
     Task<ServiceRequest> GetByIdAsync(Guid requestId);
     Task<IEnumerable<ServiceRequest>> GetServiceRequestsByOfferIdAsync(Guid offerId);
     Task UpdateAsync(ServiceRequest serviceRequest);
+    Task<bool> CheckIfRequestExists(Guid userId, Guid offerId);
 }

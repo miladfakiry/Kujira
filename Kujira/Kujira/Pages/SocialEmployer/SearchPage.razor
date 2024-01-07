@@ -1,14 +1,15 @@
 ﻿@page "/searchPage"
-@using Kujira.Api.Requests
-@using MudBlazor
-@using Kujira.Api
-@using Kujira.Gui.Api
 @using Kujira.Gui.Api.Requests
+@using MudBlazor
 @using Newtonsoft.Json
+@using Kujira.Gui.Api
+@using Kujira.Gui.Services
 @inject HttpClient HttpClient
 @inject IJSRuntime JsRuntime
 @inject IKujiraBackendApi KujiraBackendApi
 @inject IDialogService DialogService
+@inject AuthenticationService AuthenticationService
+
 
 <PageTitle>Nach Plätzen suchen</PageTitle>
 
@@ -16,90 +17,95 @@
 
 @if (!_dataLoaded)
 {
-    <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true" />
+    <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true"/>
 }
 else
 {
-<MudDataGrid Items="@_offers" ReadOnly="@_isReadOnly" Hover="@_hover" Filterable="false" SortMode="@SortMode.Multiple" Groupable="false" EditMode="@DataGridEditMode.Cell">
-    <Columns>
-        <HierarchyColumn T="OfferRequest"/>
-        <PropertyColumn Property="x => x.AvailablePlaces" Title="Verfügbare Plätze"/>
-        <PropertyColumn Property="x => x.City" Title="Ort"/>
-        <TemplateColumn T="OfferRequest" Title="Langzeitpflege">
-            <CellTemplate>
-                <MudCheckBox Checked="@context.Item.LongTermFamilyCare" Disabled/>
-            </CellTemplate>
-        </TemplateColumn>
-        <TemplateColumn T="OfferRequest" Title="Krisenintervention">
-            <CellTemplate>
-                <MudCheckBox Checked="@context.Item.CrisisIntervention" Disabled/>
-            </CellTemplate>
-        </TemplateColumn>
-        <TemplateColumn T="OfferRequest" Title="Entlastungsangebot">
-            <CellTemplate>
-                <MudCheckBox Checked="@context.Item.ReliefOffer" Disabled/>
-            </CellTemplate>
-        </TemplateColumn>
-        <PropertyColumn Property="x => x.CurrentlyPlacedFosterChildren" Title="Aktuelle Pflegekinder"/>
-        <PropertyColumn Property="x => x.BiologicalChildren" Title="Biologische Kinder">
-            <FilterTemplate>
-                <MudIconButton OnClick="@OpenFilter" Icon="@_icon" Size="@Size.Small"/>
-                <MudOverlay Visible="@_filterOpen" OnClick="@(() => _filterOpen = false)"/>
-                <MudPopover Open="@_filterOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter"
-                            Style="width:150px">
-                    <MudStack Spacing="0">
-                        <MudStack Row="true">
-                            <MudButton OnClick="@(() => ClearFilterAsync(context))">Clear</MudButton>
-                            <MudButton Color="@Color.Primary" OnClick="@(() => ApplyFilterAsync(context))">Filter</MudButton>
+    <MudDataGrid Items="@_offers" ReadOnly="@_isReadOnly" Hover="@_hover" Filterable="false" SortMode="@SortMode.Multiple" Groupable="false" EditMode="@DataGridEditMode.Cell">
+        <Columns>
+            <HierarchyColumn T="OfferRequest"/>
+            <PropertyColumn Property="x => x.AvailablePlaces" Title="Verfügbare Plätze"/>
+            <PropertyColumn Property="x => x.City" Title="Ort"/>
+            <TemplateColumn T="OfferRequest" Title="Langzeitpflege">
+                <CellTemplate>
+                    <MudCheckBox Checked="@context.Item.LongTermFamilyCare" Disabled/>
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn T="OfferRequest" Title="Krisenintervention">
+                <CellTemplate>
+                    <MudCheckBox Checked="@context.Item.CrisisIntervention" Disabled/>
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn T="OfferRequest" Title="Entlastungsangebot">
+                <CellTemplate>
+                    <MudCheckBox Checked="@context.Item.ReliefOffer" Disabled/>
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="x => x.CurrentlyPlacedFosterChildren" Title="Aktuelle Pflegekinder"/>
+            <PropertyColumn Property="x => x.BiologicalChildren" Title="Biologische Kinder">
+                <FilterTemplate>
+                    <MudIconButton OnClick="@OpenFilter" Icon="@_icon" Size="@Size.Small"/>
+                    <MudOverlay Visible="@_filterOpen" OnClick="@(() => _filterOpen = false)"/>
+                    <MudPopover Open="@_filterOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter"
+                                Style="width:150px">
+                        <MudStack Spacing="0">
+                            <MudStack Row="true">
+                                <MudButton OnClick="@(() => ClearFilterAsync(context))">Clear</MudButton>
+                                <MudButton Color="@Color.Primary" OnClick="@(() => ApplyFilterAsync(context))">Filter</MudButton>
+                            </MudStack>
                         </MudStack>
-                    </MudStack>
-                </MudPopover>
-            </FilterTemplate>
-        </PropertyColumn>
-        <PropertyColumn Property="x => x.AdditionalNote" Title="Zusätzliche Informationen"/>
-    </Columns>
-     <ChildRowContent>
-         <MudCard>
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h5">@context.Item.CompanyName</MudText>
-                </CardHeaderContent>
-            </MudCardHeader>
-            <MudCardContent>
-                <MudText Typo="Typo.h6">Kontaktdaten:</MudText>
-                <MudText>
-                    <a href="tel:@context.Item.PhoneNumber">@context.Item.PhoneNumber</a>
-                </MudText>
-                <MudText>
-                    <a href="mailto:@context.Item.EMailAddress">@context.Item.EMailAddress</a>
-                </MudText>
-                <div style="width: 100%; height: 200px; margin-top: 20px;">
-                    <iframe width="100%"
-                            height="100%"
-                            frameborder="0"
-                            style="border:0"
-                            src="https://www.google.com/maps/embed/v1/search?q=@context.Item.ZipCode&key=AIzaSyBXuXp8Lhv83I8uDc7HILgaGuaMxhvBPpQ"
-                            allowfullscreen>
-                    </iframe>
-                </div>
-            </MudCardContent>
-            <MudCardActions>
-                <MudButton Variant="Variant.Filled" Size="Size.Small" OnClick="@(() => OpenRequestDialog(context.Item))" Color="Color.Info">Anfragen</MudButton>
+                    </MudPopover>
+                </FilterTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.AdditionalNote" Title="Zusätzliche Informationen"/>
+        </Columns>
+        <ChildRowContent>
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h5">@context.Item.CompanyName</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Typo="Typo.h6">Kontaktdaten:</MudText>
+                    <MudText>
+                        <a href="tel:@context.Item.PhoneNumber">@context.Item.PhoneNumber</a>
+                    </MudText>
+                    <MudText>
+                        <a href="mailto:@context.Item.EMailAddress">@context.Item.EMailAddress</a>
+                    </MudText>
+                    <div style="width: 100%; height: 200px; margin-top: 20px;">
+                        <iframe width="100%"
+                                height="100%"
+                                frameborder="0"
+                                style="border:0"
+                                src="https://www.google.com/maps/embed/v1/search?q=@context.Item.ZipCode&key=AIzaSyBXuXp8Lhv83I8uDc7HILgaGuaMxhvBPpQ"
+                                allowfullscreen>
+                        </iframe>
+                    </div>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled" Size="Size.Small"
+                               OnClick="@(() => OpenRequestDialog(context.Item))"
+                               Color="Color.Info"
+                               Disabled="@context.Item.IsRequested">
+                        Anfragen
+                    </MudButton>
 
-
-            </MudCardActions>
-        </MudCard>
-    </ChildRowContent>
-    <PagerContent>
-        <MudDataGridPager T="OfferRequest" />
-    </PagerContent>
-</MudDataGrid>
+                </MudCardActions>
+            </MudCard>
+        </ChildRowContent>
+        <PagerContent>
+            <MudDataGridPager T="OfferRequest"/>
+        </PagerContent>
+    </MudDataGrid>
 }
+
 @code {
-    private bool _dataLoaded = false;
+    private bool _dataLoaded;
     private IEnumerable<OfferRequest> _offers = new List<OfferRequest>();
-    private bool _hover = true;
-    private bool _isReadOnly = true;
+    private readonly bool _hover = true;
+    private readonly bool _isReadOnly = true;
     HashSet<OfferRequest> _selectedItems = new();
     HashSet<OfferRequest> _filterItems = new();
     FilterDefinition<OfferRequest> _filterDefinition;
@@ -115,13 +121,18 @@ else
         try
         {
             _offers = await KujiraBackendApi.GetOffers();
+            var userId = await AuthenticationService.GetLoggedInUserIdAsync();
+            foreach (var offer in _offers)
+            {
+                offer.IsRequested = await KujiraBackendApi.CheckIfRequestExists(userId, offer.Id);
+            }
             Console.WriteLine("API response received: " + JsonConvert.SerializeObject(_offers));
             _dataLoaded = true;
             StateHasChanged();
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error fetching offers: " + ex.ToString());
+            Console.WriteLine("Error fetching offers: " + ex);
             _dataLoaded = true;
             throw;
         }
@@ -197,11 +208,24 @@ else
 
     private void OpenRequestDialog(OfferRequest offer)
     {
+        var dialogTitle = $"Anfrage senden an {offer.CompanyName}";
         var parameters = new DialogParameters
         {
-            { "Offer", offer }
+            { "Offer", offer },
+            { "OnRequestSent", new Action(() => UpdateOfferAsRequested(offer.Id)) }
         };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true };
 
-        DialogService.Show<RequestDialog>("Anfrage senden", parameters);
+        DialogService.Show<RequestDialog>(dialogTitle, parameters, options);
+    }
+
+    private void UpdateOfferAsRequested(Guid offerId)
+    {
+        var offerToUpdate = _offers.FirstOrDefault(o => o.Id == offerId);
+        if (offerToUpdate != null)
+        {
+            offerToUpdate.IsRequested = true;
+            StateHasChanged();
+        }
     }
 }

@@ -17,7 +17,9 @@
             @*Header AppBar*@
             <MudAppBar Color="Color.Primary" Fixed="true">
                 <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())"/>
+                <MudIconButton Icon="@Icons.Material.Filled.Refresh" Color="Color.Inherit" Edge="Edge.Start" OnClick="@RefreshPage"/>
                 <MudSpacer/>
+               
                 
                 @if (isAdmin || isAssociation ||isSocialService){
                 <MudMenu>
@@ -40,15 +42,16 @@
                     <MudDivider Class="my-2"/>
                 @if (isAdmin || isAssociation || isSocialService)
                     {
-                        <MudNavLink Href="/dashboard" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
                         <MudNavGroup Title="Applikationen" Icon="@Icons.Material.Filled.SettingsApplications" Expanded="true">
                             @if (isSocialService)
                             {
+                            <MudNavLink Href="/socialEmployerDashboard">Dashboard</MudNavLink>
                                 <MudNavLink Href="/searchPage">Platzsuche</MudNavLink>
-                                <MudNavLink Href="/...">Angefragte Plätze</MudNavLink>
+                                <MudNavLink Href="/requested-offers">Angefragte Plätze</MudNavLink>
                             }
                             @if (isAssociation)
                             {
+                                <MudNavLink Href="/associationDashboard">Dashboard</MudNavLink>
                                 <MudNavLink Href="/offerPlaces">Plätze anbieten</MudNavLink>
                                 <MudNavLink Href="/showUserOffer">Angebotene Plätze</MudNavLink>
                             <MudNavLink Href="/request-list">Eingehende Anfragen</MudNavLink>
@@ -60,8 +63,8 @@
                     @if (isAdmin)
                     {
                         <MudNavGroup Title="Adminbereich" Icon="@Icons.Material.Filled.AdminPanelSettings" Expanded="true">
+                            <MudNavLink Href="/adminDashboard">Dashboard</MudNavLink>
                             <MudNavLink Href="/adminUser">Benutzer</MudNavLink>
-                            @* <MudNavLink Href="/adminPlaces">Registrierte Plätze</MudNavLink> *@
                             <MudNavLink Href="/adminCompany">Verwaltungen</MudNavLink>
                         </MudNavGroup>
                     }
@@ -153,5 +156,9 @@
         await AuthService.LogoutAsync();
         ((CustomAuthenticationStateProvider)AuthenticationStateProvider).NotifyUserLogout();
         NavigationManager.NavigateTo("/loginPage");
+    }
+    private void RefreshPage()
+    {
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     }
 }

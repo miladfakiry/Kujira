@@ -1,0 +1,38 @@
+﻿@using System.Threading
+@using MudBlazor
+@implements IDisposable
+
+
+<MudPaper Class="d-flex align-center justify-center mud-width-full py-8">
+    <div>
+        <MudIcon Icon="@Icons.Material.Outlined.Timelapse" Size="Size.Large" Style="justify-content:left"></MudIcon>
+    </div>
+    <div>
+        <h2>Aktuelle Uhrzeit: @currentTime</h2>
+        <h3>Heutiges Datum: @currentDate</h3>
+    </div>
+</MudPaper>
+
+@code {
+    private string currentTime;
+    private string currentDate;
+    private Timer timer;
+
+    protected override void OnInitialized()
+    {
+        timer = new Timer(UpdateDateTime, null, 0, 1000);
+    }
+
+    private void UpdateDateTime(object state)
+    {
+        var now = DateTime.Now;
+        currentTime = now.ToString("HH:mm:ss");
+        currentDate = now.ToString("dd.MM.yyyy");
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
+    }
+}

@@ -61,13 +61,27 @@
                 {
                     await JSRuntime.InvokeVoidAsync("sessionStorage.setItem", "authToken", response.Token);
 
-                    var abgerufenesToken = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "authToken");
-                    Console.WriteLine($"Abgerufenes Token: {abgerufenesToken}");
-
                     var authStateProvider = (CustomAuthenticationStateProvider)AuthenticationStateProvider;
                     await authStateProvider.UpdateAuthenticationState();
 
-                    NavigationManager.NavigateTo("/dashboard", forceLoad: false);
+                    var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+                    var user = authState.User;
+                    if (user.IsInRole("Administrator"))
+                    {
+                        NavigationManager.NavigateTo("/adminDashboard", forceLoad: false);
+                    }
+                    else if (user.IsInRole("Association"))
+                    {
+                        NavigationManager.NavigateTo("/associationDashboard", forceLoad: false);
+                    }
+                    else if (user.IsInRole("SocialService"))
+                    {
+                        NavigationManager.NavigateTo("/socialEmployerDashboard", forceLoad: false);
+                    }
+                    else
+                    {
+                        Snackbar.Add("Unbekannte Benutzerrolle", Severity.Error);
+                    }
                 }
                 else
                 {
@@ -78,8 +92,6 @@
             {
                 Snackbar.Add($"Ein Fehler ist aufgetreten: {ex.Message}", Severity.Error);
             }
-
-
         }
         _processing = false;
     }

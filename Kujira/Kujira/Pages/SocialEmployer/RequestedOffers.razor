@@ -1,6 +1,18 @@
-﻿namespace Kujira.Gui.Pages.SocialEmployer
+﻿@page "/requested-offers"
+@using Kujira.Gui.Services
+@inject AuthenticationService AuthenticationService
+<PageTitle>Angefragte Angebote</PageTitle>
+
+@if (userId != Guid.Empty)
 {
-    public class RequestedOffers
+    <ServiceRequestsGrid UserId="@userId" />
+}
+
+@code {
+    private Guid userId;
+
+    protected override async Task OnInitializedAsync()
     {
+        userId = await AuthenticationService.GetLoggedInUserIdAsync();
     }
 }

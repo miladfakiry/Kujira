@@ -25,7 +25,7 @@ else
             <TemplateColumn T="ServiceRequestRequest" Title="Aktionen">
                 <CellTemplate>
                     <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" OnClick="@(() => AcceptRequest(context.Item.RequestId))">Annehmen</MudButton>
-                    <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" OnClick="@(() => RejectRequest(context.Item.RequestId))">Ablehnen</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(() => RejectRequest(context.Item.RequestId))">Ablehnen</MudButton>
                 </CellTemplate>
             </TemplateColumn>
 
