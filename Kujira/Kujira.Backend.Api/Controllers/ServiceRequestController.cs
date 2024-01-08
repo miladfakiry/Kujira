@@ -45,7 +45,6 @@ public class ServiceRequestController : ControllerBase
         }
     }
 
-    // GET: api/ServiceRequest/User/{userId}
     [HttpGet("User/{userId}")]
     public async Task<IActionResult> GetServiceRequestsForUser(Guid userId)
     {
@@ -75,7 +74,7 @@ public class ServiceRequestController : ControllerBase
         }
     }
 
-    // GET: api/ServiceRequest/Offer/{offerId}
+  
     [HttpGet("Offer/{offerId}")]
     public async Task<IActionResult> GetServiceRequestsForOffer(Guid offerId)
     {

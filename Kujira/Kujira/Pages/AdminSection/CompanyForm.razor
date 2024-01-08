@@ -143,8 +143,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Fehler beim Erstellen der Company: {ex}");
-            Snackbar.Add($"Fehler beim Erfassen der Verwaltung: {ex.Message}", Severity.Error);
+            Snackbar.Add($"Fehler beim Erfassen der Verwaltung:",Severity.Error);
         }
         _processing = false;
     }

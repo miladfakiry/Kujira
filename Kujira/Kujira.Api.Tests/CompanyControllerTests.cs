@@ -52,9 +52,9 @@ public class CompanyControllerTests
         var result = _controller.GetCompanies();
 
         // Assert
-        Assert.IsInstanceOf<OkObjectResult>(result.Result);
+        Assert.That(result.Result, Is.InstanceOf<OkObjectResult>());
         var okResult = result.Result as OkObjectResult;
-        Assert.IsNotNull(okResult.Value);
+        Assert.That(okResult?.Value, Is.EqualTo(companyDtos));
 
     }
 
@@ -79,7 +79,9 @@ public class CompanyControllerTests
         var result = _controller.GetCompany(Guid.NewGuid());
 
         // Assert
-        Assert.IsInstanceOf<OkObjectResult>(result.Result);
+        Assert.That(result.Result, Is.InstanceOf<OkObjectResult>());
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult?.Value, Is.EqualTo(companyDto));
     }
 
     [Test]
@@ -88,14 +90,28 @@ public class CompanyControllerTests
         // Arrange
         var companyDto = new CompanyDto
         {
-            // Setzen Sie die Werte entsprechend
             Name = "Neue Firma",
             EMailAddress = "neuefirma@example.com",
-            // weitere Eigenschaften
         };
-        var company = new Company(Guid.NewGuid(), companyDto.Name, companyDto.EMailAddress, "...", "...", Guid.NewGuid(), Guid.NewGuid());
+        var company = new Company(
+            Guid.NewGuid(), 
+            companyDto.Name, 
+            companyDto.EMailAddress, 
+            "...", 
+            "...", 
+            Guid.NewGuid(),
+            Guid.NewGuid()
+            );
 
-        var zip = new Zip(Guid.NewGuid(), "12345", "Teststadt", new Canton(Guid.NewGuid(), "Testkanton", new Country(Guid.NewGuid(), "Testland")));
+        var zip = new Zip(Guid.NewGuid(), 
+            "12345", 
+            "Teststadt", 
+            new Canton(Guid.NewGuid(),
+                "Testkanton", 
+                new Country(
+                    Guid.NewGuid(), 
+                    "Testland")
+                ));
 
         _mockMapper.Setup(m => m.Map<Company>(companyDto)).Returns(company);
         _mockZipRepository.Setup(r => r.GetByCodeWithCantonAndCountry(companyDto.ZipCode)).Returns(zip);
@@ -105,8 +121,8 @@ public class CompanyControllerTests
         var result = _controller.CreateCompany(companyDto);
 
         // Assert
-        Assert.IsInstanceOf<CreatedAtActionResult>(result.Result);
-        _mockCompanyRepository.Verify();
+        Assert.That(result.Result, Is.InstanceOf<CreatedAtActionResult>());
+        _mockCompanyRepository.Verify(r => r.Create(It.IsAny<Company>()), Times.Once);
     }
 
     [Test]
@@ -134,9 +150,8 @@ public class CompanyControllerTests
         var result = _controller.UpdateCompany(companyId, companyDto);
 
         // Assert
-        Assert.IsInstanceOf<NoContentResult>(result);
-        _mockCompanyRepository.Verify();
-        _mockMapper.Verify();
+        Assert.That(result, Is.InstanceOf<NoContentResult>());
+        _mockCompanyRepository.Verify(r => r.Update(It.IsAny<Company>()), Times.Once);
     }
 
     [Test]
@@ -153,7 +168,7 @@ public class CompanyControllerTests
         var result = _controller.DeleteCompany(companyId);
 
         // Assert
-        Assert.IsInstanceOf<NoContentResult>(result);
-        _mockCompanyRepository.Verify();
+        Assert.That(result, Is.InstanceOf<NoContentResult>());
+        _mockCompanyRepository.Verify(r => r.Delete(It.IsAny<Guid>()), Times.Once);
     }
 }

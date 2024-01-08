@@ -17,9 +17,9 @@ public class ServiceRequestProfile : Profile
             .ForMember(sr => sr.ToUserId, opt => opt.MapFrom(dto => dto.ToUserId))
             .ForMember(sr => sr.Message, opt => opt.MapFrom(dto => dto.Message))
             .ForMember(sr => sr.ResponseMessage, opt => opt.MapFrom(dto => dto.ResponseMessage))
-            .ForMember(sr => sr.RequestStatus, opt => opt.Ignore())  // Ignored during mapping, should be set in business logic
-            .ForMember(sr => sr.CreatedAt, opt => opt.Ignore())      // Ignored, will be set when adding to database
-            .ForMember(sr => sr.UpdatedAt, opt => opt.Ignore());     // Ignored, will be set when updating in database
+            .ForMember(sr => sr.RequestStatus, opt => opt.Ignore())
+            .ForMember(sr => sr.CreatedAt, opt => opt.Ignore())    
+            .ForMember(sr => sr.UpdatedAt, opt => opt.Ignore());    
 
         // Mapping from Model to DTO
         CreateMap<ServiceRequest, ServiceRequestDto>()

@@ -18,8 +18,6 @@ public class AuthorizedHttpService
         var token = await _authService.GetTokenAsync();
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        Console.WriteLine($"Senden der Anfrage mit Header: {request.Headers.Authorization}");
-
         return await _httpClient.SendAsync(request);
     }
 }

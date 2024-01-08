@@ -71,10 +71,9 @@ public class AuthControllerTests
         var result = _controller.Login(loginDto);
 
         // Assert
-        Assert.IsInstanceOf<OkObjectResult>(result);
+        Assert.That(result, Is.InstanceOf<OkObjectResult>());
         var okResult = result as OkObjectResult;
-        Assert.IsNotNull(okResult.Value);
-        // Zusätzliche Überprüfungen für das Token, falls erforderlich...
+        Assert.That(okResult?.Value, Is.Not.Null);
     }
 
 
@@ -95,7 +94,7 @@ public class AuthControllerTests
         var result = _controller.Login(loginDto);
 
         // Assert
-        Assert.IsInstanceOf<UnauthorizedResult>(result);
+        Assert.That(result, Is.InstanceOf<UnauthorizedResult>());
     }
 
     //Negativ Test
@@ -109,6 +108,6 @@ public class AuthControllerTests
         var result = _controller.ValidateToken(invalidToken);
 
         // Assert
-        Assert.IsInstanceOf<BadRequestObjectResult>(result.Result);
+        Assert.That(result.Result, Is.InstanceOf<BadRequestObjectResult>());
     }
 }

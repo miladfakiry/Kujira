@@ -38,6 +38,7 @@
 </MudDialog>
 
 @code {
+    private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
     private bool _processing = false;
 
     [Parameter]
@@ -67,7 +68,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Speichern hat nicht geklappt: {ex} ");
+            logger.Error($"Error when save offer with Id: {offer.Id}");
             throw;
         }
         _processing = false;

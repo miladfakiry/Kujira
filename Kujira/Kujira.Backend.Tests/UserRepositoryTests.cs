@@ -32,9 +32,9 @@ public class UserRepositoryTests
 
         // Assert
         _userRepositoryMock.Verify(repo => repo.Create(It.Is<User>(u =>
-                u.Id == newUser.Id &&
-                u.FirstName == newUser.FirstName &&
-                u.LastName == newUser.LastName
+            u.Id == newUser.Id &&
+            u.FirstName == newUser.FirstName &&
+            u.LastName == newUser.LastName
         )), Times.Once);
     }
 
@@ -57,7 +57,7 @@ public class UserRepositoryTests
 
         var result = _userRepositoryMock.Object.GetAll();
 
-        Assert.That(result.Count(), Is.EqualTo(2));
+        Assert.That(result, Has.Exactly(2).Items);
     }
 
     [Test]
@@ -91,10 +91,8 @@ public class UserRepositoryTests
         _userRepositoryMock.Object.Update(user);
 
         // Assert
-        _userRepositoryMock.Verify(repo => repo.Update(It.Is<User>(u =>
-                u.Id == user.Id && u.FirstName == user.FirstName
-        )), Times.Once);
-    }
+        _userRepositoryMock.Verify(repo => repo.Update(It.Is<User>(u => u.Id == user.Id && u.FirstName == user.FirstName)), Times.Once);
+}
 
     [Test]
     public void DeleteAsync_WhenCalled_InvokesDeleteOnRepository()
@@ -107,7 +105,7 @@ public class UserRepositoryTests
         userRepositoryMock.Object.Delete(userId);
 
         // Assert
-        userRepositoryMock.Verify(repo => repo.Delete(userId), Times.Once);
+        _userRepositoryMock.Verify(repo => repo.Delete(userId), Times.Once);
     }
 
 }

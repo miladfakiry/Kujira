@@ -6,6 +6,7 @@
 @inject IKujiraBackendApi KujiraBackendApi
 
 
+
 <PageTitle>Benutzerverwaltung</PageTitle>
 
 <div class="d-flex justify-space-between align-items-center my-2">
@@ -78,6 +79,7 @@ else
 
 
 @code {
+    private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
     private bool _dataLoaded;
     private IEnumerable<UserRequest> _users = new List<UserRequest>();
     private UserRequest _selectedUserDto;
@@ -126,11 +128,12 @@ else
         try
         {
             await LoadUsersAsync();
+            logger.Info("Users loaded successfully.");
             _dataLoaded = true;
         }
         catch (Exception e)
         {
-            Console.WriteLine($"Es ist ein Problem beim LoadUserAsync aufgetreten, hier ist die Exception:{e}");
+            logger.Info($"Error occurred while loading users.: {e}");
             _dataLoaded = true;
             throw;
         }
@@ -210,12 +213,12 @@ else
     {
         try
         {
-            Console.WriteLine("Bearbeitung von Benutzer mit ID: " + item.Id + " startet.");
+            logger.Info($"Starting editing user with ID: {item.Id}.");
 
             var userToEdit = await KujiraBackendApi.GetUser(item.Id);
             if (userToEdit == null)
             {
-                Console.WriteLine("Benutzer nicht gefunden.");
+                logger.Info($"User not found.");
                 return;
             }
 
@@ -233,13 +236,13 @@ else
 
             if (!result.Cancelled)
             {
-                Console.WriteLine("Benutzer erfolgreich bearbeitet.");
+                logger.Info("User successfully edit.");
                 await LoadUsersAsync();
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Fehler beim Bearbeiten des Benutzers: " + ex.Message);
+            logger.Info($"Error occurred while editing user.: {ex}");
         }
     }
 
@@ -252,11 +255,11 @@ else
         try
         {
             await KujiraBackendApi.UpdateUser(item.Id, item);
-            Console.WriteLine("Erfolgreich geändert!");
+            logger.Info($"User with Id: {item.Id} successfully updated.");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Fehler beim Aktualisieren des Benutzers: {ex.Message}");
+            logger.Info($"Error when updating user: {ex.Message}");
         }
     }
 
@@ -272,12 +275,12 @@ else
         try
         {
             await KujiraBackendApi.DeleteUser(item.Id);
-            Console.WriteLine("Benutzer erfolgreich gelöscht!");
+            logger.Info($"User with Id: {item.Id} successfully deleted.");
             await LoadUsersAsync();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Fehler beim Löschen des Benutzers: {ex.Message}");
+            logger.Info($"Error when deleting user: {ex.Message}");
         }
     }
 

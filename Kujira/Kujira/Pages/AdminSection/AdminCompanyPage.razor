@@ -1,7 +1,6 @@
 ﻿@page "/adminCompany"
 @using Kujira.Gui.Api.Requests
 @using MudBlazor
-@using Kujira.Api
 @using Kujira.Gui.Api
 @inject IDialogService DialogService
 @inject IKujiraBackendApi KujiraBackendApi
@@ -74,6 +73,7 @@ else
 }
 
 @code {
+    private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
     private bool _dataLoaded;
     private IEnumerable<CompanyRequest> _companies = new List<CompanyRequest>();
     private CompanyRequest _selectedCompanyDto;
@@ -104,8 +104,18 @@ else
 
     private async Task LoadCompaniesAsync()
     {
-        _companies = await KujiraBackendApi.GetCompanies();
-        StateHasChanged();
+        try
+        {
+            _companies = await KujiraBackendApi.GetCompanies();
+            logger.Info("Company successfully loaded.");
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            logger.Error(ex, "Error in loading company");
+            throw;
+        }
+        
     }
 
     protected override async Task OnInitializedAsync()
@@ -123,7 +133,7 @@ else
         }
         catch (Exception e)
         {
-            Console.WriteLine($"Es ist ein Problem beim LoadCompaniesAsync aufgetreten, hier ist die Exception:{e}");
+            logger.Error($"Es ist ein Problem beim LoadCompaniesAsync aufgetreten, hier ist die Exception:{e}");
             _dataLoaded = true;
             throw;
         }
@@ -203,12 +213,12 @@ else
     {
         try
         {
-            Console.WriteLine("Bearbeitung von Firma mit Id " + item.Id + " startet.");
+            logger.Info("Editing Company with ID: " + item.Id + " started.");
 
             var companyToEdit = await KujiraBackendApi.GetCompany(item.Id);
             if (companyToEdit == null)
             {
-                Console.WriteLine("Firma nicht gefunden.");
+                logger.Error("Company not found.");
                 return;
             }
 
@@ -226,13 +236,13 @@ else
 
             if (!result.Cancelled)
             {
-                Console.WriteLine("Firma erfolgreich bearbeitet.");
+                logger.Info("Company successfully edited.");
                 await LoadCompaniesAsync();
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Fehler beim Bearbeiten der Firma: " + ex.Message);
+            logger.Error("Error when editing the company: " + ex.Message);
         }
     }
 
@@ -245,11 +255,11 @@ else
         try
         {
             await KujiraBackendApi.UpdateCompany(item.Id, item);
-            Console.WriteLine("Erfolgreich geändert!");
+            logger.Info("Successfully changed.");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Fehler beim Aktualisieren der Firma: {ex.Message}");
+            logger.Error($"Error when updating the company:  {ex.Message}");
         }
     }
 
@@ -265,12 +275,12 @@ else
         try
         {
             await KujiraBackendApi.DeleteCompany(item.Id);
-            Console.WriteLine("Firma erfolgreich gelöscht!");
+            logger.Info("Company successfully deleted!");
             await LoadCompaniesAsync();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Fehler beim Löschen der Firma: {ex.Message}");
+            logger.Info($"Error when deleting the company {ex.Message}");
         }
     }
 

@@ -21,7 +21,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddTransient(sp => new HttpClient
 {
     BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
-    //BaseAddress = new Uri("https://r49nk34w-7229.euw.devtunnels.ms") // Öffentliche URL der API
+    //BaseAddress = new Uri("https://r49nk34w-7229.euw.devtunnels.ms")
 });
 
 // MudBlazor Services
@@ -43,7 +43,7 @@ builder.Services.AddSingleton<LoadingService>();
 // RestEase Service for IKujiraBackendApi
 builder.Services.AddSingleton<IKujiraBackendApi>(provider => RestClient.For<IKujiraBackendApi>(new HttpClient
 {
-    //BaseAddress = new Uri("https://r49nk34w-7229.euw.devtunnels.ms") // Öffentliche URL der API
+    //BaseAddress = new Uri("https://r49nk34w-7229.euw.devtunnels.ms")
     BaseAddress = new Uri("https://localhost:7229")
 }));
 

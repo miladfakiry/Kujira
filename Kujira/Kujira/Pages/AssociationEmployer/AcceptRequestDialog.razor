@@ -33,10 +33,9 @@
         try
         {
             var request = await KujiraBackendApi.GetServiceRequestById(RequestId);
-            Console.WriteLine($"Received request: {System.Text.Json.JsonSerializer.Serialize(request)}");
             if (request != null)
             {
-                // Fallback-Logik, um fehlende Daten zu holen
+                // Fallback-Logic to get missed values
                 if (string.IsNullOrEmpty(request.RequesterFirstName) || string.IsNullOrEmpty(request.RequesterLastName) || string.IsNullOrEmpty(request.RequesterEmail))
                 {
                     var userDetails = await KujiraBackendApi.GetUser(request.FromUserId);
@@ -61,7 +60,6 @@
                     RequestStatus = request.RequestStatus
                 };
 
-                Console.WriteLine($"Sending response: {JsonSerializer.Serialize(responseDto)}");
                 await KujiraBackendApi.SendResponseToRequest(RequestId, responseDto);
                 Snackbar.Add("Nachricht gesendet", Severity.Success);
                 MudDialog.Close(DialogResult.Ok(_responseMessage));
@@ -73,7 +71,6 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Fehler beim Senden der Antwort: {ex.Message}");
             Snackbar.Add("Fehler beim Senden der Antwort", Severity.Error);
         }
     }

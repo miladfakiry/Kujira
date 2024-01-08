@@ -47,6 +47,8 @@
 </MudCard>
 
 @code {
+    private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+
     private readonly OfferRequest offerRequest = new();
     private bool _processing = false;
     private MudForm form;
@@ -75,19 +77,17 @@
 
         if (form.IsValid)
         {
-            Console.WriteLine($"ICH BIN NEU: LongTermFamilyCare: {offerRequest.LongTermFamilyCare}, CrisisIntervention: {offerRequest.CrisisIntervention}, ReliefOffer: {offerRequest.ReliefOffer}");
             offerRequest.ZipId = _selectedZip?.Id ?? Guid.Empty;
 
             try
             {
-                Console.WriteLine("Sending Offer Request: " + JsonConvert.SerializeObject(offerRequest));
                 await KujiraBackendApi.CreateOffer(offerRequest);
                 Snackbar.Add("Angebot erfolgreich eingereicht!", Severity.Success);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: " + ex.Message);
-                Snackbar.Add($"Fehler beim Einreichen des Angebots: {ex.Message}", Severity.Error);
+                logger.Info($"Error when register place: {ex.Message}");
+                Snackbar.Add($"Fehler beim Einreichen des Angebots", Severity.Error);
             }
         }
         _processing = false;

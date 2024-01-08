@@ -74,11 +74,9 @@
     }
 
     private async Task SaveCompany()
-    {
-        Console.WriteLine($"Senden der Firma: {JsonConvert.SerializeObject(company)}");
+    { 
         company.CompanyTypeId = selectedCompanyType.Id;
         company.AddressId = company.AddressId;
-        // company.ZipId = company.ZipId;
         await KujiraBackendApi.UpdateCompany(company.Id, company);
         Snackbar.Add("Verwaltung erfolgreich aktualisiert", Severity.Success);
         MudDialog.Close(DialogResult.Ok(true));

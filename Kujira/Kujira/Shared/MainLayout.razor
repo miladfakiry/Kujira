@@ -116,8 +116,6 @@
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
-        Console.WriteLine($"IsAuthenticated: {user.Identity.IsAuthenticated}");
-
         isAdmin = user.IsInRole("Administrator");
         isAssociation = user.IsInRole("Association");
         isSocialService = user.IsInRole("SocialService");

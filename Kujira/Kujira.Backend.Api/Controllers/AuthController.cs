@@ -5,9 +5,11 @@ using Kujira.Backend.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using NLog;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using ILogger = NLog.ILogger;
 
 namespace Kujira.Api.Controllers;
 
@@ -18,6 +20,7 @@ public class AuthController : ControllerBase
     private readonly ILoginRepository _loginRepository;
     private readonly IUserRoleRepository _userRoleRepository;
     private readonly JwtSettings _jwtSettings;
+    private static readonly ILogger _logger = LogManager.GetCurrentClassLogger();
 
     public AuthController(IOptions<JwtSettings> jwtSettings, ILoginRepository loginRepository, IUserRoleRepository userRoleRepository)
     {
@@ -29,15 +32,36 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public IActionResult Login([FromBody] LoginDto loginDto)
     {
+        _logger.Info($"Login attempt for {loginDto.Email}");
+
         var loginEntry = _loginRepository.GetLoginByEmail(loginDto.Email);
-        if (loginEntry != null && BCrypt.Net.BCrypt.Verify(loginDto.Password, loginEntry.Password))
+        if (loginEntry != null)
         {
-            var userRoles = _userRoleRepository.GetRolesByUserId(loginEntry.UserId);
-            var token = GenerateJwtToken(loginEntry, userRoles);
-            return Ok(new { token });
+            if (BCrypt.Net.BCrypt.Verify(loginDto.Password, loginEntry.Password))
+            {
+                if (loginEntry.User.IsInactive)
+                {
+                    _logger.Warn($"Inactive account login attempt: {loginDto.Email}");
+                    return Unauthorized("Account is inactive.");
+                }
+
+                var userRoles = _userRoleRepository.GetRolesByUserId(loginEntry.UserId);
+                var token = GenerateJwtToken(loginEntry, userRoles);
+
+                _logger.Info($"Login successful for {loginDto.Email}");
+                return Ok(new { token });
+            }
+            else
+            {
+                _logger.Warn($"Invalid password attempt for {loginDto.Email}");
+                return Unauthorized("Invalid email or password.");
+            }
         }
-        return Unauthorized();
+
+        _logger.Warn($"Login attempt for non-existing user: {loginDto.Email}");
+        return Unauthorized("Invalid email or password.");
     }
+
 
     [HttpPost("validateToken")]
     public ActionResult<UserInfo> ValidateToken([FromBody] string token)

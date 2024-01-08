@@ -66,8 +66,6 @@ public class CompanyController : ControllerBase
     [HttpPut("{id}")]
     public IActionResult UpdateCompany(Guid id, CompanyDto companyDto)
     {
-        Console.WriteLine($"Aktualisierung der Firma {id} mit den Daten: {JsonConvert.SerializeObject(companyDto)}");
-
         var company = _companyRepository.Get(id);
         if (company == null)
         {

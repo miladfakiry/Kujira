@@ -55,7 +55,6 @@ internal class DictionaryMudLocalizer : MudLocalizer
     {
         get
         {
-            Console.WriteLine($"Anfrage für Schlüssel: {key}");
             var currentCulture = Thread.CurrentThread.CurrentUICulture.Parent.TwoLetterISOLanguageName;
             if (currentCulture.Equals("de", StringComparison.InvariantCultureIgnoreCase) && _localization.TryGetValue(key, out var res))
             {

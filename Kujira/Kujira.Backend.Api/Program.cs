@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+var logger = NLog.Web.NLogBuilder.ConfigureNLog("Settings/nlog.config").GetCurrentClassLogger();
 
 //builder.WebHost.ConfigureKestrel(serverOptions =>
 //{

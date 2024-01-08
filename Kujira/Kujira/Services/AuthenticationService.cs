@@ -21,7 +21,6 @@ public class AuthenticationService
     public async Task<string> GetTokenAsync()
     {
         var token = await _jsRuntime.InvokeAsync<string>("sessionStorage.getItem", "authToken");
-        Console.WriteLine($"Token retrieved: {token}");
         return token;
     }
 

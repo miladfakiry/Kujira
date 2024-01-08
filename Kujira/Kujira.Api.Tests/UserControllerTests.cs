@@ -56,11 +56,11 @@ public class UserControllerTests
         var result = _controller.GetUsers();
 
         // Assert
-        Assert.IsInstanceOf<OkObjectResult>(result.Result);
+        Assert.That(result.Result, Is.InstanceOf<OkObjectResult>());
         var okResult = result.Result as OkObjectResult;
-        Assert.IsNotNull(okResult);
+        Assert.That(okResult, Is.Not.Null);
         var resultValue = okResult.Value as IEnumerable<UserDto>;
-        Assert.AreEqual(userDtos.Count, resultValue.Count());
+        Assert.That(resultValue, Is.Not.Null.And.Count.EqualTo(userDtos.Count()));
     }
 
 
@@ -86,7 +86,7 @@ public class UserControllerTests
         // Assert
         Assert.IsInstanceOf<OkObjectResult>(result.Result);
         var okResult = result.Result as OkObjectResult;
-        Assert.AreEqual(userDto, okResult.Value);
+        Assert.That(okResult.Value, Is.EqualTo(userDto));
     }
 
     [Test]
@@ -121,8 +121,9 @@ public class UserControllerTests
         var result = _controller.CreateUser(userDto);
 
         // Assert
-        Assert.IsInstanceOf<CreatedAtActionResult>(result.Result);
+        Assert.That(result.Result, Is.InstanceOf<CreatedAtActionResult>());
         _mockUserRepository.Verify(repo => repo.Create(It.IsAny<User>()), Times.Once);
+        _mockLoginRepository.Verify(repo => repo.Create(It.IsAny<Login>()), Times.Once);
         _mockLoginRepository.Verify(repo => repo.Create(It.IsAny<Login>()), Times.Once);
     }
 
@@ -166,7 +167,7 @@ public class UserControllerTests
         var result = _controller.UpdateUser(userId, userDto);
 
         // Assert
-        Assert.IsInstanceOf<NoContentResult>(result);
+        Assert.That(result, Is.InstanceOf<NoContentResult>());
         _mockUserRepository.Verify(repo => repo.Update(It.IsAny<User>()), Times.Once);
     }
 
@@ -184,7 +185,7 @@ public class UserControllerTests
         var result = _controller.DeleteUser(userId);
 
         // Assert
-        Assert.IsInstanceOf<NoContentResult>(result);
+        Assert.That(result, Is.InstanceOf<NoContentResult>());
         _mockUserRepository.Verify(repo => repo.Delete(It.IsAny<Guid>()), Times.Once);
     }
 
@@ -201,7 +202,7 @@ public class UserControllerTests
         var result = _controller.GetUser(nonExistingUserId);
 
         // Assert
-        Assert.IsInstanceOf<NotFoundResult>(result.Result);
+        Assert.That(result.Result, Is.InstanceOf<NotFoundResult>());
     }
 
 }

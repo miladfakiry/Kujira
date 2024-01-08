@@ -118,6 +118,7 @@ else
 
 
 @code {
+    private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
     private IEnumerable<OfferRequest> _offers = new List<OfferRequest>();
     private bool _dataLoaded;
     private bool _readOnly;
@@ -162,7 +163,7 @@ else
         }
         catch (Exception e)
         {
-            Console.WriteLine($"Fehler beim Laden der Angebote: {e.Message}");
+            logger.Info($"Error when loading offers: {e}");
             _dataLoaded = true;
         }
     }
@@ -177,7 +178,7 @@ else
         }
         catch (Exception e)
         {
-            Console.WriteLine($"Es ist ein Problem beim Laden der Angebote aufgetreten: {e}");
+            logger.Info($"An error occured when loading offers: {e}");
         }
     }
 
@@ -210,7 +211,7 @@ else
             var offerToEdit = await KujiraBackendApi.GetOfferById(offer.Id);
             if (offerToEdit == null)
             {
-                Console.WriteLine("Kein Angebot gefunden!");
+                logger.Info("No offers found!");
                 return;
             }
 
@@ -228,13 +229,13 @@ else
 
             if (!result.Cancelled)
             {
-                Console.WriteLine("Angebot erfolgreich bearbeitet.");
+                logger.Info("Offer successfully updated.");
                 await LoadOffersAsync(offer.UserId);
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Fehler beim Bearbeiten der Firma: " + ex.Message);
+            logger.Info($"Error when updating the company: {ex}");
         }
     }
 
@@ -247,11 +248,11 @@ else
         try
         {
             await KujiraBackendApi.UpdateOffer(item.Id, item);
-            Console.WriteLine("Erfolgreich geändert!");
+            logger.Info($"Successfully updated!");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Fehler beim Aktualisieren des Angebotes: {ex.Message}");
+            logger.Info($"Error when updating offer: {ex}");
         }
     }
 
@@ -271,7 +272,7 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Fehler beim Löschen des Angebotes: {ex.Message}");
+            logger.Info($"Error when deleting offer: {ex}");
             throw;
         }
     }
@@ -285,12 +286,11 @@ else
 
         if (!result.Cancelled && result.Data is string responseMessage)
         {
-            // Aktualisieren des lokalen Anfragezustands
             var requestToUpdate = _offers.SelectMany(o => o.ServiceRequests).FirstOrDefault(r => r.RequestId == requestId);
             if (requestToUpdate != null)
             {
-                requestToUpdate.ResponseMessage = responseMessage; // Annahme, dass die Nachricht die Antwort darstellt
-                StateHasChanged(); // Aktualisieren der UI
+                requestToUpdate.ResponseMessage = responseMessage;
+                StateHasChanged();
             }
         
             await RefreshOfferRequests(offerId);
@@ -310,7 +310,7 @@ else
         {
             await KujiraBackendApi.RejectRequest(requestId);
             await RefreshOfferRequests(offerId);
-            Snackbar.Add("Anfrage wurde abgelehnt", Severity.Success);
+            Snackbar.Add("Anfrage wurde abgelehnt.", Severity.Success);
         }
     }
 

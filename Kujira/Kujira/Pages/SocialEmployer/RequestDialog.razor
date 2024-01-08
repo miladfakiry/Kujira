@@ -20,6 +20,7 @@
 </MudDialog>
 
 @code {
+    private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
     [Parameter]
     public OfferRequest Offer { get; set; }
@@ -64,7 +65,6 @@
                 RequesterPhoneNumber = user.PhoneNumber
             };
 
-            Console.WriteLine("Sende Anfrage mit Daten: {0}", JsonConvert.SerializeObject(requestDto));
 
             await KujiraBackendApi.SendRequest(requestDto);
             Snackbar.Add("Anfrage erfolgreich gesendet.", Severity.Success);
@@ -74,8 +74,7 @@
         }
         catch (Exception ex)
         {
-            // TODO: Log einbauen
-            Snackbar.Add($"Fehler beim Senden der Anfrage: {ex.Message}", Severity.Error);
+            logger.Info($"Error when sending request: {ex}");
         }
     }
 
@@ -87,7 +86,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Fehler beim Abrufen des Benutzers: {ex.Message}");
+            logger.Info($"Error when get user by id: {ex}");
             return null;
         }
     }

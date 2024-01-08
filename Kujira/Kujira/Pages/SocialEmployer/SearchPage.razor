@@ -126,13 +126,11 @@ else
             {
                 offer.IsRequested = await KujiraBackendApi.CheckIfRequestExists(userId, offer.Id);
             }
-            Console.WriteLine("API response received: " + JsonConvert.SerializeObject(_offers));
             _dataLoaded = true;
             StateHasChanged();
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error fetching offers: " + ex);
             _dataLoaded = true;
             throw;
         }
@@ -184,25 +182,6 @@ else
         else
         {
             _selectedItems.Clear();
-        }
-    }
-
-    private async void SendRequest(OfferRequest offer)
-    {
-        // var subject = Uri.EscapeDataString($"Anfrage für Platzangebot: {offer.Id}");
-        // var body = Uri.EscapeDataString($"Ich interessiere mich für das Angebot mit der ID {offer.Id}.\n\nDetails des Angebotes:\n- Verfügbare Plätze: {offer.AvailablePlaces}\n- Ort: {offer.City}\n- Langzeitpflege: {(offer.LongTermFamilyCare ? "Ja" : "Nein")}\n- Krisenintervention: {(offer.CrisisIntervention ? "Ja" : "Nein")}\n- Entlastungsangebot: {(offer.ReliefOffer ? "Ja" : "Nein")}\n\nBitte senden Sie mir weitere Informationen zu diesem Angebot.");
-
-        // var mailtoUrl = $"mailto:{offer.EMailAddress}?subject={subject}&body={body}";
-        // JsRuntime.InvokeVoidAsync("open", mailtoUrl);
-
-        try
-        {
-            await HttpClient.PostAsync($"api/Offer/SendRequest/{offer.Id}", null);
-            // Erfolgsmeldung anzeigen
-        }
-        catch (Exception ex)
-        {
-            // Fehlermeldung anzeigen
         }
     }
 

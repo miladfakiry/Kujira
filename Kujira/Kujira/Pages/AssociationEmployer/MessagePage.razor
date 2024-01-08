@@ -32,12 +32,10 @@ else
         </Columns>
     </MudDataGrid>
 }
-@* else
-{
-    <MudText>Keine Anfragen vorhanden.</MudText>
-} *@
+
 
 @code {
+    private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
     private List<ServiceRequestRequest>? _serviceRequests;
     private bool _dataLoaded = false;
 
@@ -50,7 +48,7 @@ else
         }
         catch (Exception e)
         {
-            Console.WriteLine($"Es ist ein Problem beim LoadRequestAsync aufgetreten, hier ist die Exception:{e}");
+            logger.Info($"An error occured when loading requests: {e}");
             _dataLoaded = true;
             throw;
         }
@@ -71,12 +69,12 @@ else
             }
             else
             {
-                Console.WriteLine("UserId-Claim nicht gefunden.");
+                logger.Info("UserId-Claim not found.");
             }
         }
         else
         {
-            Console.WriteLine("Benutzer nicht authentifiziert.");
+            logger.Info("User not authenticated.");
         }
     }
 
